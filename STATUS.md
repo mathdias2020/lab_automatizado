@@ -78,8 +78,9 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Worker Python e wrapper seguro do executor documentados em `worker/`.
 - [x] Painel mínimo criado em `panel/`, com fila de benchmark e tabela de auditoria.
 - [x] Painel compilado com Next 16.3.0 e dependências sem vulnerabilidades no `npm audit`.
-- [ ] Chave server-side instalada na VPS.
-- [ ] Serviço worker instalado, testado com `--once` e habilitado.
+- [x] Chave server-side instalada na VPS sem entrar no Git.
+- [x] Serviço worker instalado, testado automaticamente e habilitado no boot.
+- [x] Benchmark automático concluído com `succeeded`, três artefatos e hashes registrados.
 - [ ] Autenticação do painel configurada.
 - [ ] Painel web vinculado ao Vercel.
 
@@ -90,8 +91,8 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 ## Próxima etapa
 
 1. definir a primeira métrica/feature de pesquisa semântica, separadamente para WDO e WIN;
-2. instalar e testar o worker com um único `quality_benchmark`;
-3. criar o painel mínimo de acompanhamento e comando;
+2. configurar autenticação do painel e testar as rotas server-side;
+3. vincular o painel ao Vercel sem expor a `service_role`;
 4. criar um experimento baseline com `run_id`, configuração e custos explícitos;
 5. manter a execução por fila/partição na KVM2;
 6. só depois iniciar descoberta de hipóteses por agentes.

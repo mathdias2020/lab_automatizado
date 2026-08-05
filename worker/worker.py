@@ -8,6 +8,7 @@ benchmark DuckDB isolado.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import subprocess
@@ -15,6 +16,7 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 
@@ -92,6 +94,27 @@ class Gateway:
             },
         )
 
+    def register_artifact(
+        self,
+        run_id: str,
+        worker_id: str,
+        artifact_type: str,
+        uri: str,
+        sha256: str,
+        metadata: dict[str, Any],
+    ) -> None:
+        self.rpc(
+            "lab_automatizado_register_artifact",
+            {
+                "p_run_id": run_id,
+                "p_worker_id": worker_id,
+                "p_artifact_type": artifact_type,
+                "p_uri": uri,
+                "p_sha256": sha256,
+                "p_metadata": metadata,
+            },
+        )
+
 
 @dataclass(frozen=True)
 class Settings:
@@ -128,7 +151,23 @@ class Settings:
         )
 
 
-def run_command(settings: Settings, command: dict[str, Any]) -> tuple[str, str]:
+def register_run_artifacts(gateway: Gateway, settings: Settings, run_id: str) -> int:
+    run_root = Path(f"/srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}")
+    files = sorted(run_root.glob("*.csv"))
+    for artifact in files:
+        digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+        gateway.register_artifact(
+            run_id=run_id,
+            worker_id=settings.worker_id,
+            artifact_type="quality_csv",
+            uri=f"vps://{artifact}",
+            sha256=digest,
+            metadata={"bytes": artifact.stat().st_size},
+        )
+    return len(files)
+
+
+def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -> tuple[str, str]:
     command_id = str(command["command_id"])
     command_type = command.get("command_type")
     run_id = str(command.get("run_id"))
@@ -157,7 +196,12 @@ def run_command(settings: Settings, command: dict[str, Any]) -> tuple[str, str]:
         stderr = (completed.stderr or "").strip().replace("\n", " ")
         return "failed", f"Runner retornou {completed.returncode}: {stderr[-500:]}"
 
-    return "completed", f"Benchmark concluído; artefatos em /srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}."
+    try:
+        artifact_count = register_run_artifacts(gateway, settings, run_id)
+    except (GatewayError, OSError) as exc:
+        return "failed", f"Benchmark terminou, mas o registro de artefatos falhou: {exc}"
+
+    return "completed", f"Benchmark concluído; {artifact_count} artefatos registrados."
 
 
 def run_loop(settings: Settings, once: bool) -> None:
@@ -174,7 +218,7 @@ def run_loop(settings: Settings, once: bool) -> None:
         commands = gateway.claim(settings.worker_id)
         if commands:
             command = commands[0]
-            command_status, message = run_command(settings, command)
+            command_status, message = run_command(gateway, settings, command)
             run_status = "succeeded" if command_status == "completed" else "failed"
             gateway.finish(
                 str(command["command_id"]),

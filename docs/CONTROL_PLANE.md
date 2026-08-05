@@ -29,6 +29,7 @@ O control plane registra comandos, execuções, eventos, artefatos e heartbeats.
 - `lab_automatizado_enqueue_run`
 - `lab_automatizado_claim_next_command`
 - `lab_automatizado_finish_command`
+- `lab_automatizado_register_artifact`
 - `lab_automatizado_list_runs`
 
 O worker deve usar o RPC de claim para obter uma única tarefa por vez. A função usa `FOR UPDATE SKIP LOCKED`, impedindo que dois workers reivindiquem o mesmo comando.
@@ -49,9 +50,9 @@ O worker não acessa o Docker socket. O executor continua sendo um container des
 
 ## Ativação na VPS
 
-O serviço não deve ser ativado até que a chave server-side seja inserida manualmente em `/etc/lab-automatizado/worker.env`, fora do Git. A instalação do serviço é separada da ativação para evitar um processo sem credencial ou com configuração incompleta.
+O serviço foi ativado depois do teste controlado. A chave server-side está em `/etc/lab-automatizado/worker.env`, fora do Git, com proprietário `root:root` e permissão `600`.
 
-Depois da instalação, o teste inicial deve usar `--once` e um único `quality_benchmark`. Só após conferir `runs`, `commands`, `events`, heartbeat e artefatos o serviço poderá ser habilitado para polling contínuo.
+O teste inicial executou um único `quality_benchmark` pelo worker automático. O run terminou com sucesso, o heartbeat foi confirmado e os três CSVs foram registrados com SHA-256. O serviço agora faz polling contínuo, mas só aceita `quality_benchmark`.
 
 ## Painel
 

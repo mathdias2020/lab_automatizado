@@ -99,7 +99,7 @@ A VPS Hostinger 1556867 está configurada como worker Linux para os laboratório
 - usuário administrativo labadmin criado com a chave SSH do projeto;
 - UFW ativo, com entrada liberada somente para SSH;
 - swap de 2 GB configurado;
-- diretórios dos projetos criados, mas nenhum container iniciado;
+- worker systemd do Laboratório Automatizado ativo e habilitado no boot; os containers do executor continuam sendo efêmeros;
 - O dataset completo ainda não foi transferido; somente a amostra de validação foi copiada.
 - A camada derivada `normalized_sample_v1` foi criada e validada na VPS em `/srv/labs/datasets/canonical/normalized_sample_v1`.
 
