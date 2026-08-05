@@ -1,0 +1,19 @@
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.key
+**/credentials*
+**/*secret*
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+work/tmp/
+
+# Dados brutos e derivados; permanecem no storage de dados/VPS, não no Git
+*.parquet
+
+# Local runtime state and logs
+*.log
+*.pid

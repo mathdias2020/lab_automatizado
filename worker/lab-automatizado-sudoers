@@ -1,0 +1,1 @@
+labadmin ALL=(root) NOPASSWD: /usr/local/sbin/lab-automatizado-quality-run *

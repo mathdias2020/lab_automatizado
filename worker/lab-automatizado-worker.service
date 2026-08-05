@@ -1,0 +1,22 @@
+[Unit]
+Description=Laboratorio Automatizado control-plane worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=labadmin
+WorkingDirectory=/srv/labs/projects/lab_automatizado
+EnvironmentFile=/etc/lab-automatizado/worker.env
+ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/worker/worker.py
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+ReadWritePaths=/srv/labs/projects/lab_automatizado/runs/control_plane
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

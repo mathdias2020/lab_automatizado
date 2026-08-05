@@ -1,0 +1,28 @@
+{
+  "run_id": "quality_expanded_v1",
+  "run_type": "data_quality_and_scan_benchmark",
+  "project_id": "lab_automatizado",
+  "dataset_artifact": "expanded_sample_v1",
+  "dataset_manifest": "/srv/labs/datasets/manifests/expanded-sample-v1-manifest.json",
+  "input_mount": "/srv/labs/datasets/canonical/expanded_sample_v1/normalized",
+  "expected_rows": 697179363,
+  "expected_assets": ["WDOFUT", "WINFUT"],
+  "expected_source_schemas": ["legacy", "recent"],
+  "resources": {
+    "cpus": 1.5,
+    "memory": "2GB",
+    "pids": 128,
+    "network": "none"
+  },
+  "outputs": [
+    "partition_quality.csv",
+    "source_quality.csv",
+    "run_summary.csv"
+  ],
+  "non_goals": [
+    "strategy_discovery",
+    "backtest_promotion",
+    "supabase_write",
+    "order_execution"
+  ]
+}

@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+run_id="${1:-}"
+case "$run_id" in
+  ''|*[!a-f0-9-]*)
+    echo "run_id inválido" >&2
+    exit 2
+    ;;
+esac
+
+base="/srv/labs/projects/lab_automatizado/runs/control_plane/$run_id"
+mkdir -p "$base/tmp"
+chown -R labadmin:labadmin "$base"
+
+DATA_ROOT=/srv/labs/datasets/canonical/expanded_sample_v1/normalized \
+RUN_ROOT="$base" \
+TMP_ROOT="$base/tmp" \
+/usr/bin/docker compose \
+  -f /srv/labs/projects/lab_automatizado/executor/compose.yaml \
+  run --rm quality-benchmark

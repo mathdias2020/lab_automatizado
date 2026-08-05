@@ -1,0 +1,29 @@
+name: lab-automatizado-executor
+
+services:
+  quality-benchmark:
+    image: duckdb/duckdb@sha256:69b2f746c2d179c0e8d47914f2cff6a9af863372732822fb84e88047f4f2ebf1
+    working_dir: /tmp
+    command: ["/duckdb", ":memory:", "-batch", "-f", "/runner/data_quality.sql"]
+    network_mode: "none"
+    read_only: true
+    cpus: 1.5
+    mem_limit: 2g
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: bind
+        source: ${DATA_ROOT}
+        target: /data
+        read_only: true
+      - type: bind
+        source: ${RUN_ROOT}
+        target: /artifacts
+      - type: bind
+        source: ${TMP_ROOT}
+        target: /tmp
+      - type: bind
+        source: ./data_quality.sql
+        target: /runner/data_quality.sql
+        read_only: true

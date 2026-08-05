@@ -1,0 +1,52 @@
+{
+  "manifest_version": "1",
+  "artifact_id": "expanded_sample_v1",
+  "project_id": "lab_automatizado",
+  "created_at": "2026-08-05",
+  "selection_periods": ["2012-04", "2016-01", "2020-01", "2024-01", "2026-03", "2026-04", "2026-05", "2026-06"],
+  "source_path_vps": "/srv/labs/datasets/canonical/expanded_sample_v1/raw",
+  "normalized_path_vps": "/srv/labs/datasets/canonical/expanded_sample_v1/normalized",
+  "source_total_files": 16,
+  "source_total_bytes": 4969732663,
+  "source_total_rows": 697179363,
+  "normalized_total_files": 4,
+  "normalized_total_bytes": 2959681727,
+  "normalized_total_rows": 697179363,
+  "normalized_reduction_percent": 40.45,
+  "duckdb_version": "v1.5.5",
+  "source_timezone_assumption": "America/Sao_Paulo",
+  "read_only_permissions": "0444",
+  "source_files": [
+    {"path":"wdofut/2012-04.parquet","rows":2294,"bytes":22806,"sha256":"cc161ff71914b8aeced3968268214f9a7e022359a1ce97a7715e02634c4dcbcf"},
+    {"path":"wdofut/2016-01.parquet","rows":2537117,"bytes":20097276,"sha256":"1ea4eeae7b2383379cf3c3c855025d762a4d21f53bd3f3852f8da25e5509c160"},
+    {"path":"wdofut/2020-01.parquet","rows":7571969,"bytes":62858651,"sha256":"3ad8ab19851ccb4e36531a2102c9757ced55eb76e7aabd896a920f33f461c467"},
+    {"path":"wdofut/2024-01.parquet","rows":13904877,"bytes":109404767,"sha256":"ffbcb23ef86ef4a08e4f46a81c4cb409f6697b7e0d0d0a79fb7d5cd5301f19ce"},
+    {"path":"wdofut/2026-03.parquet","rows":20588180,"bytes":153675279,"sha256":"4594ea8ae6ece5db1ff30b56ace74b55bef7a2b9ee48ec296fd272cbca328dc2"},
+    {"path":"wdofut/2026-04.parquet","rows":11462073,"bytes":69792514,"sha256":"2fa3035ebfc5942e5bf67285a82f847c38549a6fc3201b9b3eaae92c51e8bdb4"},
+    {"path":"wdofut/2026-05.parquet","rows":10868846,"bytes":65995834,"sha256":"c2eda34c924e86623f4eb10d53d843386108028c55034bf2908257c13c923cd3"},
+    {"path":"wdofut/2026-06.parquet","rows":12164750,"bytes":73885295,"sha256":"e2b91da8d90a4a117648ba2c7dea5d68b463f8dbd3cdb4702dff6093692b7042"},
+    {"path":"winfut/2012-04.parquet","rows":520795,"bytes":4011027,"sha256":"efedc1da12b0afb0c149991adf47ff41d65594384866519a941c210a8e51c3e"},
+    {"path":"winfut/2016-01.parquet","rows":2700549,"bytes":22683415,"sha256":"6221444a92063102733449db36dd2e8653fe3e4a3cb2d580bd0a59b5a93b213b"},
+    {"path":"winfut/2020-01.parquet","rows":50191311,"bytes":407362048,"sha256":"db96ae5820311a16f2865b05b788a6e4e06e99951557fa0a78574d7122e5960b"},
+    {"path":"winfut/2024-01.parquet","rows":90247231,"bytes":697777962,"sha256":"eeaaee8fa6c3d3a1d20404f045d7d967b283b50fc729846bdfaf247819b91ea9"},
+    {"path":"winfut/2026-03.parquet","rows":159962487,"bytes":1213616761,"sha256":"023d25b90da377fb364cdb58aa80d0645d96414ef8f2e2d52f72b403f8088814"},
+    {"path":"winfut/2026-04.parquet","rows":107717931,"bytes":707681599,"sha256":"2caff1a19d16011f9e5f09c5ac06b7c165f8feead2d6ec6866fa1707a39989dd"},
+    {"path":"winfut/2026-05.parquet","rows":100621598,"bytes":663588036,"sha256":"b3321193c876caeb4bd87f3d952397acb578690a0b4566eb08a2a10738b1e60d"},
+    {"path":"winfut/2026-06.parquet","rows":106117355,"bytes":697279393,"sha256":"53eed9faee78bbd522b1ab0ca970fe6b3cd1cfc9cc54c3545d8d3efd03607ec2"}
+  ],
+  "normalized_files": [
+    {"path":"asset=WDOFUT/source_schema=legacy/data_0.parquet","rows":44604437,"bytes":170980687,"sha256":"9726ff3b56f6a22770b97ec1890e0f4df2282829e0ff3f1c613fb52fd8333e91"},
+    {"path":"asset=WDOFUT/source_schema=recent/data_0.parquet","rows":34495669,"bytes":145133793,"sha256":"18ced0e614547adabf2707634e5d9394cfd40d8a63fb0724bd7388caf32236aa"},
+    {"path":"asset=WINFUT/source_schema=legacy/data_0.parquet","rows":303622373,"bytes":1166971236,"sha256":"323915584121d11f4efb1756670f13fae950bb47db5ea652fd139af8977b75d8"},
+    {"path":"asset=WINFUT/source_schema=recent/data_0.parquet","rows":314456884,"bytes":1476596011,"sha256":"a5dad5c92288c607029b3744a96c57a5ffdb0913201f2f7de61e20dbda144cd6"}
+  ],
+  "validation": {
+    "rows_match_source_per_file": true,
+    "min_event_ts_match_source_per_file": true,
+    "max_event_ts_match_source_per_file": true,
+    "essential_canonical_nulls": 0,
+    "normalization_command_timeout_seconds": 900,
+    "validation_seconds": 91.21,
+    "temporary_containers_removed": true
+  }
+}

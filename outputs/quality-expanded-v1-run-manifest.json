@@ -1,0 +1,53 @@
+{
+  "run_id": "quality_expanded_v1",
+  "run_type": "data_quality_and_scan_benchmark",
+  "project_id": "lab_automatizado",
+  "status": "success",
+  "completed_at_duckdb": "2026-08-05 15:35:24.216924",
+  "elapsed_seconds_wall_clock": 79.96,
+  "executor_image": "duckdb/duckdb@sha256:69b2f746c2d179c0e8d47914f2cff6a9af863372732822fb84e88047f4f2ebf1",
+  "duckdb_version": "v1.5.5",
+  "input_manifest": "/srv/labs/datasets/manifests/expanded-sample-v1-manifest.json",
+  "input_path": "/srv/labs/datasets/canonical/expanded_sample_v1/normalized",
+  "input_rows": 697179363,
+  "input_assets": 2,
+  "input_source_schemas": 2,
+  "input_source_files": 16,
+  "resources": {
+    "container_cpus": 1.5,
+    "container_memory": "2GB",
+    "duckdb_threads": 1,
+    "duckdb_memory_limit": "1500MB",
+    "max_temp_directory_size": "20GB",
+    "network": "none",
+    "pids_limit": 128
+  },
+  "outputs": [
+    {
+      "path": "partition_quality.csv",
+      "bytes": 494,
+      "sha256": "8740cadba7943a01b8118f1198e33e11a367cad051018babdbb6cfb00c27ce50"
+    },
+    {
+      "path": "source_quality.csv",
+      "bytes": 1919,
+      "sha256": "00ac698785c0b406cf85a0d8818c3976094eb782de129a341639207bbc7b7b4b"
+    },
+    {
+      "path": "run_summary.csv",
+      "bytes": 195,
+      "sha256": "736479e8c0588ad28143d195d775b534707e00e6ffd759873acdedd3f24b8463"
+    }
+  ],
+  "checks": {
+    "expected_rows_match": true,
+    "expected_assets_match": true,
+    "expected_source_schemas_match": true,
+    "expected_source_files_match": true,
+    "essential_nulls_zero": true,
+    "temporary_directory_cleaned": true,
+    "container_removed": true,
+    "supabase_written": false,
+    "orders_sent": false
+  }
+}

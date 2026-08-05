@@ -1,0 +1,202 @@
+"""Worker server-side do Laboratório Automatizado.
+
+O processo não monta o Docker socket. Ele consulta a fila via RPC protegido e
+invoca apenas o wrapper root-owned autorizado pelo sudoers para executar o
+benchmark DuckDB isolado.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import time
+import urllib.error
+import urllib.request
+from dataclasses import dataclass
+from typing import Any
+
+
+class GatewayError(RuntimeError):
+    pass
+
+
+class Gateway:
+    def __init__(self, base_url: str, service_role_key: str) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.service_role_key = service_role_key
+
+    def rpc(self, function_name: str, payload: dict[str, Any]) -> Any:
+        request = urllib.request.Request(
+            f"{self.base_url}/rest/v1/rpc/{function_name}",
+            data=json.dumps(payload).encode("utf-8"),
+            method="POST",
+            headers={
+                "apikey": self.service_role_key,
+                "Authorization": f"Bearer {self.service_role_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                raw = response.read().decode("utf-8")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise GatewayError(f"RPC {function_name} retornou HTTP {exc.code}: {detail[:500]}") from exc
+        except urllib.error.URLError as exc:
+            raise GatewayError(f"Falha de rede no RPC {function_name}: {exc.reason}") from exc
+
+        if not raw:
+            return None
+        return json.loads(raw)
+
+    def heartbeat(self, worker_id: str, version: str, capabilities: list[str]) -> None:
+        self.rpc(
+            "lab_automatizado_heartbeat_worker",
+            {
+                "p_worker_id": worker_id,
+                "p_version": version,
+                "p_capabilities": capabilities,
+            },
+        )
+
+    def claim(self, worker_id: str) -> list[dict[str, Any]]:
+        result = self.rpc(
+            "lab_automatizado_claim_next_command",
+            {"p_worker_id": worker_id},
+        )
+        if result is None:
+            return []
+        if not isinstance(result, list):
+            raise GatewayError(f"Resposta inesperada do claim: {type(result).__name__}")
+        return result
+
+    def finish(
+        self,
+        command_id: str,
+        worker_id: str,
+        command_status: str,
+        run_status: str,
+        message: str,
+    ) -> None:
+        self.rpc(
+            "lab_automatizado_finish_command",
+            {
+                "p_command_id": command_id,
+                "p_worker_id": worker_id,
+                "p_command_status": command_status,
+                "p_run_status": run_status,
+                "p_message": message,
+            },
+        )
+
+
+@dataclass(frozen=True)
+class Settings:
+    supabase_url: str
+    service_role_key: str
+    worker_id: str
+    worker_version: str
+    poll_seconds: float
+    heartbeat_seconds: float
+    run_timeout_seconds: int
+    quality_runner: str
+
+    @classmethod
+    def from_env(cls) -> "Settings":
+        required = {
+            "SUPABASE_URL": os.environ.get("SUPABASE_URL", ""),
+            "SUPABASE_SERVICE_ROLE_KEY": os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
+            raise SystemExit(f"Variáveis obrigatórias ausentes: {', '.join(missing)}")
+
+        return cls(
+            supabase_url=required["SUPABASE_URL"],
+            service_role_key=required["SUPABASE_SERVICE_ROLE_KEY"],
+            worker_id=os.environ.get("WORKER_ID", "lab-automatizado-vps-linux"),
+            worker_version=os.environ.get("WORKER_VERSION", "0.1.0"),
+            poll_seconds=float(os.environ.get("POLL_SECONDS", "5")),
+            heartbeat_seconds=float(os.environ.get("HEARTBEAT_SECONDS", "15")),
+            run_timeout_seconds=int(os.environ.get("RUN_TIMEOUT_SECONDS", "3600")),
+            quality_runner=os.environ.get(
+                "QUALITY_RUNNER", "/usr/local/sbin/lab-automatizado-quality-run"
+            ),
+        )
+
+
+def run_command(settings: Settings, command: dict[str, Any]) -> tuple[str, str]:
+    command_id = str(command["command_id"])
+    command_type = command.get("command_type")
+    run_id = str(command.get("run_id"))
+
+    if command_type != "start_run":
+        return "failed", f"Comando não implementado nesta fase: {command_type}"
+
+    payload = command.get("payload") or {}
+    if payload.get("run_type") != "quality_benchmark":
+        return "failed", "Somente quality_benchmark está permitido no worker inicial."
+
+    try:
+        completed = subprocess.run(
+            ["sudo", "-n", settings.quality_runner, run_id],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=settings.run_timeout_seconds,
+        )
+    except subprocess.TimeoutExpired:
+        return "failed", f"Benchmark excedeu {settings.run_timeout_seconds}s."
+    except OSError as exc:
+        return "failed", f"Não foi possível iniciar o runner: {exc}"
+
+    if completed.returncode != 0:
+        stderr = (completed.stderr or "").strip().replace("\n", " ")
+        return "failed", f"Runner retornou {completed.returncode}: {stderr[-500:]}"
+
+    return "completed", f"Benchmark concluído; artefatos em /srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}."
+
+
+def run_loop(settings: Settings, once: bool) -> None:
+    gateway = Gateway(settings.supabase_url, settings.service_role_key)
+    capabilities = ["quality_benchmark"]
+    last_heartbeat = 0.0
+
+    while True:
+        now = time.monotonic()
+        if now - last_heartbeat >= settings.heartbeat_seconds:
+            gateway.heartbeat(settings.worker_id, settings.worker_version, capabilities)
+            last_heartbeat = now
+
+        commands = gateway.claim(settings.worker_id)
+        if commands:
+            command = commands[0]
+            command_status, message = run_command(settings, command)
+            run_status = "succeeded" if command_status == "completed" else "failed"
+            gateway.finish(
+                str(command["command_id"]),
+                settings.worker_id,
+                command_status,
+                run_status,
+                message,
+            )
+            if once:
+                return
+        elif once:
+            return
+        else:
+            time.sleep(settings.poll_seconds)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--once", action="store_true", help="Processa no máximo um comando e encerra.")
+    args = parser.parse_args()
+    run_loop(Settings.from_env(), once=args.once)
+
+
+if __name__ == "__main__":
+    main()

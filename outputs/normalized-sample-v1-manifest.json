@@ -1,0 +1,60 @@
+{
+  "manifest_version": "1",
+  "artifact_id": "normalized_sample_v1",
+  "project_id": "lab_automatizado",
+  "created_at": "2026-08-05",
+  "source_artifact": "transfer_sample_v1",
+  "source_path_vps": "/srv/labs/datasets/canonical/transfer_sample_v1",
+  "derived_path_vps": "/srv/labs/datasets/canonical/normalized_sample_v1",
+  "source_timezone_assumption": "America/Sao_Paulo",
+  "duckdb_version": "v1.5.5",
+  "compression": "ZSTD",
+  "read_only_permissions": "0444",
+  "total_files": 4,
+  "total_rows": 400000,
+  "files": [
+    {
+      "path": "wdofut/legacy_2026-03.parquet",
+      "source_schema": "legacy",
+      "rows": 100000,
+      "bytes": 354410,
+      "sha256": "d92dd601b2186ad6e8f670c1d78a42bd05d10baf64e9dccaa78cca30a54ef830"
+    },
+    {
+      "path": "wdofut/recent_2026-04.parquet",
+      "source_schema": "recent",
+      "rows": 100000,
+      "bytes": 435752,
+      "sha256": "f2a02feb88490ad6c97a34b869a5f696a9f0d6288e6a922494412bd2965aaca6"
+    },
+    {
+      "path": "winfut/legacy_2026-03.parquet",
+      "source_schema": "legacy",
+      "rows": 100000,
+      "bytes": 359424,
+      "sha256": "86b4ae8ca73b0bf47b52fdbda052fdb73066b7b87a23ff7165abf28c9a815c8a"
+    },
+    {
+      "path": "winfut/recent_2026-04.parquet",
+      "source_schema": "recent",
+      "rows": 100000,
+      "bytes": 437954,
+      "sha256": "759efedfb1404c86ef93ee6d5863395b7c472a5503e2c48403b63d6dcdb6d19b"
+    }
+  ],
+  "validation": {
+    "rows_match_source_per_file": true,
+    "min_event_ts_match_source_per_file": true,
+    "max_event_ts_match_source_per_file": true,
+    "canonical_nulls": {
+      "event_ts": 0,
+      "ticker": 0,
+      "trade_number": 0,
+      "price": 0,
+      "quantity": 0,
+      "volume": 0,
+      "source_file": 0
+    },
+    "temporary_container_removed": true
+  }
+}

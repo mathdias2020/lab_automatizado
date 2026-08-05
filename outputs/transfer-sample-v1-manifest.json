@@ -1,0 +1,219 @@
+{
+  "sample_id": "transfer_sample_v1",
+  "generated_at_utc": "2026-08-05T14:30:24Z",
+  "source_root": "C:\\Users\\Windows 11\\Desktop\\Projeto-Fluxo-WDO-WIN\\dados_parquet",
+  "sample_root": "C:\\Users\\Windows 11\\Documents\\Codex\\2026-08-04\\considerando-que-voc-um-trader-autonomo-2\\work\\transfer_sample_v1",
+  "rows_per_file": 100000,
+  "entries": [
+    {
+      "ticker": "wdofut",
+      "label": "legacy_2026-03",
+      "source_relative_path": "ticker=wdofut/ano=2026/mes=03/data_0.parquet",
+      "source_rows": 20588180,
+      "sample_rows": 100000,
+      "sample_relative_path": "wdofut/legacy_2026-03.parquet",
+      "sample_bytes": 559816,
+      "sample_sha256": "30b6500d917af0712dcbfff9fe03cb8db550f6ac1180d5d0562cfa8ef5c1bc40",
+      "schema": [
+        [
+          "date",
+          "date32[day]"
+        ],
+        [
+          "time",
+          "string"
+        ],
+        [
+          "trade_number",
+          "int64"
+        ],
+        [
+          "price",
+          "double"
+        ],
+        [
+          "qty",
+          "int64"
+        ],
+        [
+          "vol",
+          "double"
+        ],
+        [
+          "buy_agent",
+          "string"
+        ],
+        [
+          "sell_agent",
+          "string"
+        ],
+        [
+          "trade_type",
+          "string"
+        ],
+        [
+          "aft",
+          "string"
+        ]
+      ]
+    },
+    {
+      "ticker": "wdofut",
+      "label": "recent_2026-04",
+      "source_relative_path": "ticker=wdofut/ano=2026/mes=04/data_0.parquet",
+      "source_rows": 11462073,
+      "sample_rows": 100000,
+      "sample_relative_path": "wdofut/recent_2026-04.parquet",
+      "sample_bytes": 923124,
+      "sample_sha256": "269b0addaa13ecf2c0f5116ccb3315d1df01fd649bcac62288eafd376c82c462",
+      "schema": [
+        [
+          "ts",
+          "timestamp[us]"
+        ],
+        [
+          "ticker",
+          "string"
+        ],
+        [
+          "trade_number",
+          "uint32"
+        ],
+        [
+          "price",
+          "double"
+        ],
+        [
+          "quantity",
+          "int64"
+        ],
+        [
+          "volume",
+          "double"
+        ],
+        [
+          "buy_agent",
+          "int32"
+        ],
+        [
+          "sell_agent",
+          "int32"
+        ],
+        [
+          "trade_type",
+          "uint8"
+        ],
+        [
+          "is_edit",
+          "bool"
+        ]
+      ]
+    },
+    {
+      "ticker": "winfut",
+      "label": "legacy_2026-03",
+      "source_relative_path": "ticker=winfut/ano=2026/mes=03/data_0.parquet",
+      "source_rows": 159962487,
+      "sample_rows": 100000,
+      "sample_relative_path": "winfut/legacy_2026-03.parquet",
+      "sample_bytes": 580534,
+      "sample_sha256": "410b82190503fa5a513745543823389983f697db9ca7528714fa2dff60de7816",
+      "schema": [
+        [
+          "date",
+          "date32[day]"
+        ],
+        [
+          "time",
+          "string"
+        ],
+        [
+          "trade_number",
+          "int64"
+        ],
+        [
+          "price",
+          "double"
+        ],
+        [
+          "qty",
+          "int64"
+        ],
+        [
+          "vol",
+          "double"
+        ],
+        [
+          "buy_agent",
+          "string"
+        ],
+        [
+          "sell_agent",
+          "string"
+        ],
+        [
+          "trade_type",
+          "string"
+        ],
+        [
+          "aft",
+          "string"
+        ]
+      ]
+    },
+    {
+      "ticker": "winfut",
+      "label": "recent_2026-04",
+      "source_relative_path": "ticker=winfut/ano=2026/mes=04/data_0.parquet",
+      "source_rows": 107717931,
+      "sample_rows": 100000,
+      "sample_relative_path": "winfut/recent_2026-04.parquet",
+      "sample_bytes": 942898,
+      "sample_sha256": "397d584c3b68b37e272b0bfb86236b72c858621d7ce21f4d97aa3402b8f1011f",
+      "schema": [
+        [
+          "ts",
+          "timestamp[us]"
+        ],
+        [
+          "ticker",
+          "string"
+        ],
+        [
+          "trade_number",
+          "uint32"
+        ],
+        [
+          "price",
+          "double"
+        ],
+        [
+          "quantity",
+          "int64"
+        ],
+        [
+          "volume",
+          "double"
+        ],
+        [
+          "buy_agent",
+          "int32"
+        ],
+        [
+          "sell_agent",
+          "int32"
+        ],
+        [
+          "trade_type",
+          "uint8"
+        ],
+        [
+          "is_edit",
+          "bool"
+        ]
+      ]
+    }
+  ],
+  "purpose": "Validate transfer, permissions, Parquet reading and schema handling before full migration.",
+  "originals_unchanged": true
+}
