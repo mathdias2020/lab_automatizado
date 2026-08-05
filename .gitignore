@@ -19,3 +19,7 @@ work/tmp/
 # Local runtime state and logs
 *.log
 *.pid
+
+.vercel/
+.env*
+!.env.example

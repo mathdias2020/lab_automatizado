@@ -151,6 +151,12 @@ Uma amostra ampliada de 16 arquivos, cobrindo os meses 2012-04, 2016-01, 2020-01
 
 O executor mínimo está em `/srv/labs/projects/lab_automatizado/executor`, com o run `quality_expanded_v1` em `/srv/labs/projects/lab_automatizado/runs/quality_expanded_v1`. O primeiro run de qualidade terminou em 79,96 segundos, gerou artefatos somente leitura e não acessou Supabase nem execução de ordens.
 
+## Control plane e painel
+
+O schema privado `lab_automatizado` no Supabase abriga o estado de runs, commands, events, artifacts e workers. O worker da VPS usa `/etc/lab-automatizado/worker.env`; a chave privilegiada não entra no Git.
+
+O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas server-side validam a sessão e chamam as RPCs com `SUPABASE_SERVICE_ROLE_KEY`. O deploy está no projeto Vercel `lab-automatizado-panel`, com produção em `https://lab-automatizado-panel.vercel.app/`. O primeiro usuário ainda precisa ser criado em `Authentication → Users`; a allowlist opcional é `PANEL_ALLOWED_EMAILS`.
+
 ## Regra de atualização do contexto
 
 Toda decisão que altere objetivo, escopo, dados, protocolo, risco ou arquitetura deve:

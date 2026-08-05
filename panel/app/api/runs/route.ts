@@ -12,10 +12,39 @@ function serverConfig() {
   return { url: url.replace(/\/$/, ""), key };
 }
 
-function authorized(request: NextRequest) {
-  if (process.env.NODE_ENV !== "production" && !process.env.PANEL_INTERNAL_TOKEN) return true;
-  const expected = process.env.PANEL_INTERNAL_TOKEN;
-  return Boolean(expected && request.headers.get("x-panel-token") === expected);
+class AuthFailure extends Error {
+  constructor(public readonly status: 401 | 403, message: string) {
+    super(message);
+  }
+}
+
+async function authenticatedUser(request: NextRequest) {
+  const authorization = request.headers.get("authorization") ?? "";
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  if (!match) throw new AuthFailure(401, "Sessão ausente ou expirada.");
+
+  const { url, key } = serverConfig();
+  const response = await fetch(`${url}/auth/v1/user`, {
+    cache: "no-store",
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${match[1]}`,
+    },
+  });
+
+  if (!response.ok) throw new AuthFailure(401, "Sessão ausente ou expirada.");
+
+  const user = (await response.json()) as { id?: string; email?: string | null };
+  const allowedEmails = (process.env.PANEL_ALLOWED_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (allowedEmails.length > 0 && (!user.email || !allowedEmails.includes(user.email.toLowerCase()))) {
+    throw new AuthFailure(403, "Este usuário não está autorizado para este laboratório.");
+  }
+
+  return user;
 }
 
 async function rpc<T>(name: string, payload: Record<string, unknown>): Promise<T> {
@@ -39,21 +68,20 @@ async function rpc<T>(name: string, payload: Record<string, unknown>): Promise<T
 }
 
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-
   try {
+    await authenticatedUser(request);
     const runs = await rpc<unknown[]>("lab_automatizado_list_runs", { p_limit: 50 });
     return NextResponse.json({ runs });
   } catch (error) {
+    if (error instanceof AuthFailure) return NextResponse.json({ error: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : "Falha desconhecida.";
     return NextResponse.json({ error: message }, { status: 503 });
   }
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) return NextResponse.json({ error: "Não autorizado." }, { status: 401 });
-
   try {
+    const user = await authenticatedUser(request);
     const body = (await request.json()) as { run_key?: unknown };
     const runKey = typeof body.run_key === "string" ? body.run_key.trim() : "";
     if (!/^[a-z0-9][a-z0-9-]{2,100}$/.test(runKey)) {
@@ -68,11 +96,12 @@ export async function POST(request: NextRequest) {
         source: "panel",
         dataset_root: "/srv/labs/datasets/canonical/expanded_sample_v1/normalized",
       },
-      p_requested_by: "panel",
+      p_requested_by: user.email ?? user.id ?? "panel",
     });
 
     return NextResponse.json({ run_id: runId }, { status: 201 });
   } catch (error) {
+    if (error instanceof AuthFailure) return NextResponse.json({ error: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : "Falha desconhecida.";
     return NextResponse.json({ error: message }, { status: 503 });
   }

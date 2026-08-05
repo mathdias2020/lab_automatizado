@@ -2,6 +2,22 @@
 
 Registro append-only das decisões tomadas nos grills e durante a execução do laboratório. Uma decisão nova não apaga a anterior; ela a substitui explicitamente quando necessário.
 
+## D-023 — Autenticação do painel com Supabase Auth
+
+- **Data:** 2026-08-05
+- **Status:** vigente
+- **Decisão:** o painel usa Supabase Auth com e-mail/senha; o cliente usa apenas uma chave publishable e as rotas server-side validam o bearer token antes de chamar as RPCs privilegiadas.
+- **Motivo:** permitir controle pelo painel publicado sem expor a `service_role` e sem criar uma segunda camada de credenciais compartilhadas.
+- **Impacto:** o primeiro usuário precisa ser criado manualmente em `Authentication → Users`; uma allowlist por e-mail pode ser ativada via `PANEL_ALLOWED_EMAILS` quando os usuários dos dois laboratórios forem conhecidos.
+
+## D-024 — Painel publicado em projeto Vercel separado
+
+- **Data:** 2026-08-05
+- **Status:** vigente
+- **Decisão:** o painel do Laboratório Automatizado usa o projeto Vercel `lab-automatizado-panel`, separado do código do worker e dos demais laboratórios.
+- **Motivo:** manter a interface de controle independente, com variáveis sensíveis server-side e deploys reproduzíveis a partir da pasta `panel/`.
+- **Impacto:** o perfil `lab-automatizado` agora vincula GitHub, Supabase e Vercel; o endpoint de produção é `https://lab-automatizado-panel.vercel.app/`.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05
@@ -21,10 +37,10 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 ## D-017 — Painel sem publicação pública antes de autenticação
 
 - **Data:** 2026-08-05
-- **Status:** vigente
+- **Status:** superada por D-023
 - **Decisão:** o painel inicial pode ser desenvolvido e testado localmente, mas não será publicado como aplicação pública enquanto a autenticação e as variáveis server-side não estiverem configuradas.
 - **Motivo:** a interface dispara comandos que consomem recursos da VPS; nenhum visitante anônimo deve alcançar o gateway `service_role`.
-- **Impacto:** o painel exige `PANEL_INTERNAL_TOKEN` em produção nesta fase. Supabase Auth será a próxima camada antes do vínculo com Vercel.
+- **Impacto histórico:** o painel exigia `PANEL_INTERNAL_TOKEN` até a implementação do Supabase Auth; a regra vigente está em D-023.
 
 ## D-001 — Separar pesquisa de execução
 
