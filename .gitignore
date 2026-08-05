@@ -9,6 +9,8 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+node_modules/
+.next/
 work/tmp/
 
 # Dados brutos e derivados; permanecem no storage de dados/VPS, não no Git

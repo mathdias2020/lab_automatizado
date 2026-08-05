@@ -76,9 +76,12 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Fila idempotente com `FOR UPDATE SKIP LOCKED` criada.
 - [x] Gateway RPC server-side prefixado criado e restrito a `service_role`.
 - [x] Worker Python e wrapper seguro do executor documentados em `worker/`.
+- [x] Painel mínimo criado em `panel/`, com fila de benchmark e tabela de auditoria.
+- [x] Painel compilado com Next 16.3.0 e dependências sem vulnerabilidades no `npm audit`.
 - [ ] Chave server-side instalada na VPS.
 - [ ] Serviço worker instalado, testado com `--once` e habilitado.
-- [ ] Painel web criado e vinculado ao Vercel.
+- [ ] Autenticação do painel configurada.
+- [ ] Painel web vinculado ao Vercel.
 
 Relatório: `outputs/quality-expanded-v1-run-2026-08-05.md`.
 

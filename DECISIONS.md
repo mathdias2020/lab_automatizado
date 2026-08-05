@@ -18,6 +18,14 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** a VPS possui 2 vCPU e aproximadamente 8 GB de RAM; concorrência irrestrita prejudicaria a validade e a estabilidade dos experimentos.
 - **Impacto:** o worker inicial só aceita `quality_benchmark`; pesquisa autônoma e outros tipos entrarão por contratos posteriores.
 
+## D-017 — Painel sem publicação pública antes de autenticação
+
+- **Data:** 2026-08-05
+- **Status:** vigente
+- **Decisão:** o painel inicial pode ser desenvolvido e testado localmente, mas não será publicado como aplicação pública enquanto a autenticação e as variáveis server-side não estiverem configuradas.
+- **Motivo:** a interface dispara comandos que consomem recursos da VPS; nenhum visitante anônimo deve alcançar o gateway `service_role`.
+- **Impacto:** o painel exige `PANEL_INTERNAL_TOKEN` em produção nesta fase. Supabase Auth será a próxima camada antes do vínculo com Vercel.
+
 ## D-001 — Separar pesquisa de execução
 
 - **Data:** 2026-08-04

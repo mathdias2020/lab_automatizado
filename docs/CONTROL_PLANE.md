@@ -52,3 +52,12 @@ O worker não acessa o Docker socket. O executor continua sendo um container des
 O serviço não deve ser ativado até que a chave server-side seja inserida manualmente em `/etc/lab-automatizado/worker.env`, fora do Git. A instalação do serviço é separada da ativação para evitar um processo sem credencial ou com configuração incompleta.
 
 Depois da instalação, o teste inicial deve usar `--once` e um único `quality_benchmark`. Só após conferir `runs`, `commands`, `events`, heartbeat e artefatos o serviço poderá ser habilitado para polling contínuo.
+
+## Painel
+
+O painel inicial está em `panel/`. Ele oferece a visão de execuções e o comando de enfileirar `quality_benchmark`, mas ainda não deve ser publicado como aplicação pública:
+
+- o `service_role` só é lido em rotas server-side;
+- em produção, a API exige `PANEL_INTERNAL_TOKEN` até configurarmos Supabase Auth;
+- o Vercel só deve ser vinculado depois que a autenticação e as variáveis server-side estiverem configuradas;
+- a interface não deve permitir `research` arbitrário antes de existir um executor aprovado para esse tipo.
