@@ -1,7 +1,7 @@
 # Hermes Research System — V1
 
 **Data:** 2026-08-06
-**Status:** motor de propostas V1 ativo; revisão humana pendente
+**Status:** motor de propostas V1 ativo; contrato executável v2 em implantação
 **Função:** descoberta adaptativa, crítica e priorização de pesquisas
 
 ## 1. Papel do Hermes
@@ -45,7 +45,7 @@ separado que só devolve o resultado agregado após a hipótese estar congelada.
 4. Enumerar falsificadores e controles
 5. Revisar adversarialmente
 6. Executar estudo determinístico
-7. Avaliar bruto, líquido, robustez e capacidade
+7. Avaliar PnL bruto, robustez e estabilidade temporal
 8. Registrar resultado completo
 9. Escolher a próxima pesquisa
 ```
@@ -68,7 +68,9 @@ Cada proposta deve conter:
   "entry_definition": "regra mensurável",
   "exit_policy_id": "fixed|break_even|trailing|partial|time_stop|...",
   "horizons": [1, 5, 15],
-  "primary_metric": "net_pnl_per_contract_month",
+  "contract_version": "hermes_execution_v2",
+  "primary_metric": "gross_pnl_per_contract_month",
+  "execution_spec": {},
   "baselines": [],
   "falsifiers": [],
   "data_scope": "development-only",
@@ -78,7 +80,9 @@ Cada proposta deve conter:
 ```
 
 O JSON é compilado pelo control plane. Texto livre nunca vira executor
-diretamente.
+diretamente. A proposta só pode ser aprovada quando contiver uma especificação
+executável completa, com feature, entrada, saída, sizing, orçamento e flags
+`costs_applied=false` e `slippage_applied=false`.
 
 ## 5. Revisão adversarial
 
@@ -102,9 +106,10 @@ mensagem e a entrega ao engine sem expor `service_role` ao engine. O Hermes
 responde com `response`, `revision_proposal` ou `abandonment`, sempre registrando
 o payload de incertezas e testes sugeridos.
 
-O botão **Aprovar para teste** é separado de **Enviar ao Hermes**. Aprovar apenas
-autoriza uma futura especificação congelada a entrar no executor determinístico;
-não executa, não promove e não transforma a resposta textual em evidência.
+O botão **Aprovar para teste** é separado de **Enviar ao Hermes**. Aprovar uma
+proposta executável cria uma fila idempotente para o backtest bruto de
+desenvolvimento. Isso não promove nem transforma a resposta textual em
+evidência; a evidência nasce somente dos artefatos do executor determinístico.
 
 ## 6. Políticas de saída
 
@@ -113,7 +118,7 @@ serão uma biblioteca de políticas versionadas. O Hermes pode sugerir variantes
 mas cada família terá uma grade e orçamento pré-registrados.
 
 O avaliador deve preservar a trajetória intraday e registrar MAE, MFE, tempo em
-posição, motivo de saída, quantidade restante, custos e slippage. O Hermes não
+posição, motivo de saída e quantidade restante. O Hermes não
 pode escolher uma saída depois de ver o resultado e apagar as demais tentativas.
 
 ## 7. Memória e fonte de verdade
@@ -131,11 +136,11 @@ alterar o protocolo científico ou o executor sem revisão.
 
 O Hermes não otimiza o maior backtest. A prioridade de uma hipótese considera:
 
-- valor esperado líquido fora da amostra;
+- valor esperado bruto fora da amostra;
 - estabilidade por tempo, regime e ativo;
 - simplicidade e interpretabilidade;
 - contribuição marginal para o portfólio;
-- capacidade na base de 10 WDO e 50 WIN;
+- sizing de pesquisa na base de 10 WDO e 50 WIN;
 - custo computacional e número de tentativas;
 - penalidade por sensibilidade de parâmetros e concentração.
 
@@ -148,9 +153,9 @@ O Hermes pode gerar `CANDIDATE_FOR_REVIEW`, nunca `PROMOTED`.
 
 Uma promoção exige, no mínimo:
 
-- resultado bruto e líquido;
+- resultado bruto;
 - amostra temporal suficiente;
-- custos e slippage aplicados;
+- `costs_applied=false` e `slippage_applied=false` no contrato bruto;
 - estabilidade mensal e por regime;
 - controle de multiplicidade;
 - ausência de look-ahead;
@@ -183,8 +188,9 @@ autônoma:
 - `agent_events` fica reservado para o diário operacional do agente;
 - `hypothesis_messages` registra a conversa humana/Hermes e seu estado técnico de entrega;
 - o estado inicial é `offline`/`disabled`;
-- uma aprovação no painel apenas muda a hipótese para `approved_for_test`; ela
-  não inicia um run nem promove uma estratégia;
+- uma aprovação no painel muda a hipótese para `approved_for_test` e enfileira
+  um `strategy_backtest` de desenvolvimento de forma idempotente; ela não
+  promove uma estratégia;
 - as APIs usam sessão do Supabase Auth e chamam RPCs server-side com
   `service_role`; as tabelas permanecem privadas e sem grants para o navegador.
 

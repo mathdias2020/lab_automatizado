@@ -1,2 +1,3 @@
 labadmin ALL=(root) NOPASSWD: /usr/local/sbin/lab-automatizado-quality-run *
 labadmin ALL=(root) NOPASSWD: /usr/local/sbin/lab-automatizado-research-run *
+labadmin ALL=(root) NOPASSWD: /usr/local/sbin/lab-automatizado-strategy-run *

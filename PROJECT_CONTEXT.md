@@ -1,6 +1,6 @@
 # Laboratório de Estratégias IA — Contexto do Projeto
 
-**Status:** Fase 4 — motor de propostas do sistema Hermes
+**Status:** Fase 5 — executor determinístico bruto e fila Hermes
 **Data de referência:** 2026-08-06
 **Nome do laboratório:** Laboratório Automatizado  
 **ID técnico:** lab_automatizado  
@@ -22,7 +22,8 @@ Inclui:
 - execução reproduzível de experimentos;
 - descoberta de hipóteses por agentes;
 - validação fora da amostra;
-- custos, slippage e análise de robustez;
+- análise de robustez e comparação por períodos;
+- execução determinística de hipóteses aprovadas em modo bruto;
 - relatórios e registro de decisões.
 
 Não inclui:
@@ -42,14 +43,15 @@ Não inclui:
 - Cada ativo terá um portfólio independente de estratégias intraday.
 - O alvo central é uma média de R$ 1.000 por contrato operado por mês em cada ativo.
 - A banda mensal inicial de monitoramento é R$ 700–R$ 1.300 por contrato; ela é diagnóstica, não um filtro mensal rígido.
-- O resultado bruto será preservado como métrica de pesquisa, e o resultado líquido após custos, slippage e execução será obrigatório para promoção operacional.
+- O limite diagnóstico inicial de drawdown é R$ 5.000 por contrato; ultrapassá-lo rejeita a configuração para a etapa corrente e exige reavaliação.
+- Nesta fase, o resultado de pesquisa é exclusivamente bruto: custos e slippage ficam explicitamente desativados em todos os testes. Qualquer estudo operacional futuro terá contrato separado e não poderá ser confundido com esta métrica.
 - Operação exclusivamente intraday.
 - Objetivo de atividade: média de cinco operações por semana somando WDO e WIN; não é uma quota que force entradas ruins.
 - WDO e WIN serão validados separadamente.
 - O resultado final será um portfólio de estratégias independentes.
 - O laboratório pode gerar hipóteses, código e experimentos de forma autônoma dentro de um espaço de busca controlado.
 - A promoção de uma estratégia exige aprovação humana.
-- O Hermes poderá explorar dados de desenvolvimento, propor e criticar hipóteses e iniciar pesquisas permitidas pelo control plane; não terá acesso iterativo ao holdout nem poderá promover estratégias.
+- O Hermes poderá explorar dados de desenvolvimento, propor e criticar hipóteses e iniciar pesquisas permitidas pelo control plane. A aprovação humana no painel enfileira um teste determinístico bruto; a promoção para validação, portfólio ou operação continua exigindo aprovação humana.
 - A descoberta prioriza as variáveis disponíveis nos cinco anos de histórico confiável.
 - Os trinta dias úteis com dados mais ricos de microestrutura serão usados como fonte secundária de hipóteses e testes específicos, não como substituto da validação de longo prazo.
 - A série histórica preferida é contínua e ajustada.
@@ -67,7 +69,7 @@ A referência de dimensionamento é definida por operação, sem vínculo com um
 
 Operações simultâneas mantêm dimensionamento independente. A exposição agregada será observada por uma camada global de risco, mas não altera silenciosamente a quantidade definida para cada operação.
 
-Essa referência não é um filtro de pesquisa nem substitui a análise de liquidez, custos, slippage, drawdown, correlação e exposição agregada. O PnL do portfólio será normalizado por contratos efetivamente executados.
+Essa referência não é um filtro de pesquisa nem substitui a análise de drawdown, correlação e exposição agregada. O PnL bruto do portfólio será normalizado por contratos efetivamente executados; liquidez, custos e slippage serão gates posteriores, fora do executor bruto atual.
 
 ## Arquitetura pretendida
 
@@ -95,7 +97,7 @@ Hermes explora dados de desenvolvimento em leitura
     -> formaliza uma hipótese versionada
     -> revisão adversarial
     -> executor determinístico
-    -> métricas brutas/líquidas e artefatos
+    -> métricas brutas e artefatos
     -> Hermes escolhe a próxima pesquisa
 ```
 
@@ -127,7 +129,8 @@ Estrutura inicial no servidor:
     ├── datasets/
     │   ├── canonical/
     │   ├── manifests/
-    │   └── holdout/
+    │   ├── holdout/
+    │   └── raw/full/        Parquets originais, somente leitura
     └── projects/
         ├── lab-a/
         └── lab-b/
@@ -152,7 +155,9 @@ O inventário de 2026-08-05 encontrou:
 - schema recente nos meses 2026-04, 2026-05 e 2026-06, com ts, quantity, volume, IDs numéricos de agentes e is_edit;
 - schema histórico nos demais meses, com date, time, qty, vol, nomes textuais de agentes e aft.
 
-O dataset completo não será transferido antes de aplicarmos o contrato a uma fração maior, medirmos o custo da camada derivada e fecharmos o snapshot de pesquisa.
+O dataset completo será transferido para `raw/full` como fonte global e somente
+leitura. O executor v2 fará leitura direta dos dois schemas com `union_by_name`,
+sem materializar uma camada derivada completa na KVM2 antes de medir a carga.
 
 A amostra transferida em 2026-08-05 contém 100.000 negócios de cada combinação de ativo e schema:
 
@@ -173,16 +178,16 @@ O executor mínimo está em `/srv/labs/projects/lab_automatizado/executor`, com 
 
 O schema privado `lab_automatizado` no Supabase abriga o estado de runs, commands, events, artifacts e workers. O worker da VPS usa `/etc/lab-automatizado/worker.env`; a chave privilegiada não entra no Git.
 
-O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas server-side validam a sessão e chamam as RPCs com `SUPABASE_SERVICE_ROLE_KEY`. O deploy está no projeto Vercel `lab-automatizado-panel`, com produção em `https://lab-automatizado-panel.vercel.app/`. O acesso está restrito por Supabase Auth e `PANEL_ALLOWED_EMAILS`. O painel permite iniciar o quality benchmark e o estudo `absorption_event_study_v1` separadamente para WDO e WIN.
+O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas server-side validam a sessão e chamam as RPCs com `SUPABASE_SERVICE_ROLE_KEY`. O deploy está no projeto Vercel `lab-automatizado-panel`, com produção em `https://lab-automatizado-panel.vercel.app/`. O acesso está restrito por Supabase Auth e `PANEL_ALLOWED_EMAILS`. O painel permite iniciar pesquisas permitidas e revisar hipóteses; aprovar uma hipótese válida cria, de forma idempotente, um `strategy_backtest` bruto de desenvolvimento e atualiza a lista de execuções.
 
 O monitoramento Hermes V1 também está publicado: a tela mostra o estado do
 agente, modo, heartbeat e fila de hipóteses. A revisão humana pode marcar uma
-hipótese como `approved_for_test`, mas não inicia execução e não promove
-estratégia. O bootstrap e o motor de propostas estão ativos na VPS em
+hipótese como `approved_for_test`; isso enfileira o teste bruto determinístico,
+mas não promove estratégia. O bootstrap e o motor de propostas estão ativos na VPS em
 `/srv/labs/projects/lab_automatizado/hermes`; o motor não possui
 `service_role`, holdout, Docker socket ou permissão para iniciar runs.
 
-O primeiro estudo de pesquisa foi executado em 2026-08-06 sobre a amostra histórica parcial. Os resultados e limites estão em `docs/ABSORPTION_EVENT_STUDY_V1.md`; eles não autorizam promoção nem operação.
+O primeiro estudo de pesquisa foi executado em 2026-08-06 sobre a amostra histórica parcial. Os resultados e limites estão em `docs/ABSORPTION_EVENT_STUDY_V1.md`; eles não autorizam promoção nem operação. O executor v2 foi criado para hipóteses com contrato executável, incluindo entrada por absorção, stop, alvo, break-even, trailing, saída parcial, time stop e encerramento de sessão.
 
 ## Regra de atualização do contexto
 

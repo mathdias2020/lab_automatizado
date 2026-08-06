@@ -10,7 +10,9 @@ O control plane registra comandos, execuções, eventos, artefatos e heartbeats.
 - O acesso server-side ocorre por funções RPC prefixadas em `public`.
 - As funções RPC exigem `service_role` e não devem ser chamadas pelo navegador.
 - A chave `SUPABASE_SERVICE_ROLE_KEY` só pode existir no ambiente do worker ou em rotas server-side do painel.
-- Nesta fase o único comando executável é `quality_benchmark`.
+- Os comandos executáveis são allowlisted: `quality_benchmark`, pesquisas
+  aprovadas e `strategy_backtest` bruto. O Hermes não pode inventar um tipo de
+  run fora desse contrato.
 - Não existe qualquer caminho para ProfitDLL, simulador, replay ou envio de ordens.
 
 ## Objetos do schema privado
@@ -52,7 +54,7 @@ O worker não acessa o Docker socket. O executor continua sendo um container des
 
 O serviço foi ativado depois do teste controlado. A chave server-side está em `/etc/lab-automatizado/worker.env`, fora do Git, com proprietário `root:root` e permissão `600`.
 
-O teste inicial executou um único `quality_benchmark` pelo worker automático. O run terminou com sucesso, o heartbeat foi confirmado e os três CSVs foram registrados com SHA-256. O serviço agora faz polling contínuo, mas só aceita `quality_benchmark`.
+O teste inicial executou um único `quality_benchmark` pelo worker automático. O run terminou com sucesso, o heartbeat foi confirmado e os três CSVs foram registrados com SHA-256. O worker também valida contratos `strategy_backtest` em modo bruto e mantém a fila serializada na KVM2.
 
 ## Painel
 
@@ -67,7 +69,7 @@ O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.ve
 - a interface não deve permitir `research` arbitrário antes de existir um executor aprovado para esse tipo.
 - o worker aceita somente `absorption_event_study_v1` dentro de `research`; a configuração é transportada no payload e validada antes de iniciar o runner.
 
-O primeiro usuário foi criado e o fluxo foi validado: login, leitura, enfileiramento pelo painel, execução no worker Docker e finalização `succeeded`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser.
+O primeiro usuário foi criado e o fluxo foi validado: login, leitura, enfileiramento pelo painel, execução no worker Docker e finalização `succeeded`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser. Aprovar uma hipótese executável enfileira o backtest bruto e atualiza a tabela de execuções; o usuário ainda precisa acompanhar o resultado e aprovar qualquer promoção posterior.
 
 ## Registry do Hermes — V1
 
@@ -103,8 +105,9 @@ recente. A revisão humana no painel não dispara execução:
 plane.
 
 O primeiro ciclo do motor registrou duas hipóteses no registry, uma por ativo.
-Elas aparecem no painel como `proposed` e aguardam revisão humana; nenhum run
-foi iniciado automaticamente.
+Elas aparecem no painel como `proposed` e aguardam revisão humana; ao aprovar
+uma proposta com contrato v2 completo, um run bruto de desenvolvimento é criado
+de forma idempotente.
 
 ## Thread de revisão Hermes–humano
 

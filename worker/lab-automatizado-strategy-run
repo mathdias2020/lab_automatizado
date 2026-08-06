@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+run_id="${1:-}"
+case "$run_id" in
+  ''|*[!a-f0-9-]*) echo "run_id invalido" >&2; exit 2 ;;
+esac
+
+base="/srv/labs/projects/lab_automatizado/runs/control_plane/$run_id"
+config="$base/config.json"
+test -s "$config" || { echo "config.json ausente" >&2; exit 2; }
+mkdir -p "$base/tmp"
+chown -R labadmin:labadmin "$base"
+
+DATA_ROOT=/srv/labs/datasets/raw/full \
+RUN_ROOT="$base" \
+TMP_ROOT="$base/tmp" \
+CONFIG_FILE="$config" \
+/usr/bin/docker compose \
+  -f /srv/labs/projects/lab_automatizado/executor/compose.yaml \
+  run --rm strategy-backtest

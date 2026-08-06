@@ -1,9 +1,9 @@
 # Status do projeto
 
 **Data:** 2026-08-06
-**Fase:** 4 — monitoramento Hermes V1 e preparação do runtime
-**Estado:** contrato canônico v1 validado em amostra ampliada; dataset completo ainda bloqueado  
-**Última decisão:** o projeto usa o ID lab_automatizado e os Parquets originais permanecem imutáveis.
+**Fase:** 5 — executor determinístico bruto e fila Hermes
+**Estado:** contrato executável v2 implementado localmente; migração, publicação e sincronização integral em andamento
+**Última decisão:** o objetivo é R$ 1.000 bruto por contrato/mês por ativo; custos e slippage ficam desativados nesta fase.
 
 ## Concluído
 
@@ -137,12 +137,12 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. revisar as duas propostas no painel e registrar notas humanas;
-2. implementar a revisão adversarial antes de qualquer teste determinístico;
-3. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
-4. conectar hipóteses aprovadas a runs allowlisted, sem promoção automática;
-5. implementar políticas de saída versionadas: break-even, trailing, parcial, time stop e encerramento de sessão;
-6. manter a execução por fila/partição na KVM2.
+1. aplicar e verificar a migração `hermes_execution_v2` no Supabase;
+2. publicar worker, Hermes, executor e painel na VPS/Vercel;
+3. sincronizar os 341 Parquets para `raw/full` e conferir contagem/tamanho;
+4. revisar as propostas no painel; a aprovação deve enfileirar o backtest bruto;
+5. acompanhar o primeiro `strategy_backtest` e validar seus artefatos;
+6. evoluir a revisão adversarial e o portfólio por ativo antes de qualquer holdout ou promoção.
 
 ## Fora do escopo atual
 

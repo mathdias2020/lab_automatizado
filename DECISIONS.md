@@ -39,7 +39,7 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Data:** 2026-08-06
 - **Status:** vigente; substitui D-003 e D-010
 - **Decisão:** remover do objetivo do projeto o capital de referência de R$ 1 milhão, o limite de perda de R$ 100 mil e o retorno percentual sobre capital. Cada ativo terá um portfólio independente, buscando média de R$ 1.000 por contrato operado por mês. A referência por operação será WDO 10 contratos e WIN 50 contratos.
-- **Critério de aceitação:** a média de longo prazo é a métrica principal. A faixa mensal inicial de monitoramento é R$ 700–R$ 1.300 por contrato; um mês abaixo da faixa gera diagnóstico e não invalida o portfólio. Resultado bruto será reportado para pesquisa; resultado líquido após custos e slippage é obrigatório para promoção operacional.
+- **Critério de aceitação:** a média de longo prazo é a métrica principal. A faixa mensal inicial de monitoramento é R$ 700–R$ 1.300 por contrato; um mês abaixo da faixa gera diagnóstico e não invalida o portfólio. O resultado bruto é a métrica desta pesquisa, o drawdown diagnóstico é R$ 5.000 por contrato e custos/slippage ficam fora do executor até um gate operacional posterior.
 - **Motivo:** medir a qualidade econômica do portfólio por unidade operacional, sem amarrar a pesquisa a um capital arbitrário nem reagir de forma excessiva a um único mês.
 - **Impacto:** WDO e WIN não se compensam. O PnL escalado usa contratos efetivamente executados; a referência 10/50 não oculta liquidez, correlação, exposição simultânea ou capacidade.
 
@@ -77,6 +77,23 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Restrições:** o motor só lê o contexto de desenvolvimento, não recebe `service_role`, não acessa o holdout, não inicia runs e gera no máximo uma proposta por ativo para cada hash de contexto.
 - **Motivo:** o primeiro teste com esforço `high` consumiu o limite de saída apenas em raciocínio; `medium` produziu duas propostas válidas, uma WDOFUT e uma WINFUT.
 - **Impacto:** as propostas estão no painel como `proposed` e exigem revisão humana antes de qualquer execução determinística.
+
+## D-032 — Executor v2 de hipóteses com resultado bruto
+
+- **Data:** 2026-08-06
+- **Status:** vigente
+- **Decisão:** uma hipótese aprovada no painel só poderá entrar na fila se trouxer um contrato executável `hermes_execution_v2`. O contrato define feature, entrada, stop, alvo, time stop, break-even, trailing, saída parcial, encerramento de sessão, sizing WDO 10/WIN 50 e orçamento de busca.
+- **Restrições:** todo teste desta fase é `gross_only`; custos e slippage devem permanecer `false`. O executor não lê o holdout, não envia ordens e não promove estratégia. O run é criado de forma idempotente e executado pelo worker allowlisted em container sem rede.
+- **Motivo:** eliminar o caminho silencioso em que texto livre de uma proposta parecia suficiente para testar uma estratégia, sem deixar claro como a entrada e a saída seriam executadas.
+- **Impacto:** a aprovação humana passa a enfileirar um `strategy_backtest` de desenvolvimento e a execução aparece no painel; a evidência é somente a produzida pelos artefatos determinísticos.
+
+## D-033 — Transferência integral do dataset bruto para a VPS
+
+- **Data:** 2026-08-06
+- **Status:** em execução
+- **Decisão:** sincronizar os 341 Parquets para `/srv/labs/datasets/raw/full`, preservando os arquivos originais e montando essa raiz como somente leitura. A leitura será feita diretamente com compatibilização dos dois schemas; não será materializada uma camada derivada integral antes de medir custo e espaço.
+- **Motivo:** o Hermes precisa acessar o histórico completo para descoberta e o executor precisa validar hipóteses em escala, enquanto a KVM2 não comporta duplicação desnecessária do dataset.
+- **Impacto:** o espaço restante da VPS será monitorado; resultados, DuckDBs, logs e artefatos continuam separados em `/srv/labs/projects/lab_automatizado`.
 
 ## D-015 — Control plane privado e worker sem Docker socket
 

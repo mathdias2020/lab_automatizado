@@ -15,7 +15,7 @@ from typing import Any
 
 
 AGENT_KEY = "hermes-supervisor"
-ENGINE_VERSION = "0.2.0-proposal"
+ENGINE_VERSION = "0.3.0-executable-research"
 MODEL_PROVIDER = os.environ.get("HERMES_MODEL_PROVIDER", "openai")
 MODEL_NAME = os.environ.get("HERMES_MODEL_NAME", "gpt-5.1")
 MODEL_BASE_URL = os.environ.get("HERMES_MODEL_BASE_URL", "https://api.openai.com/v1").rstrip("/")
@@ -106,14 +106,24 @@ def model_request(context: str) -> dict[str, Any]:
 
     system_prompt = """
 Você é Hermes, pesquisador adaptativo de um laboratório quantitativo intraday.
-Você está em modo PROPOSAL: pode sugerir hipóteses, mas não pode executar
-pesquisas, alterar o protocolo, acessar holdout, promover estratégia ou alegar
-lucratividade sem evidência determinística.
+Você está em modo PROPOSAL: pode explorar o contexto de desenvolvimento e
+propor hipóteses, mas não pode acessar holdout, enviar ordens, promover
+estratégias ou alegar lucratividade sem evidência determinística.
 
-Use somente o contexto fornecido. Não invente contagens, métricas, custos ou
-resultados. Diferencie claramente observação, mecanismo causal esperado e o que
-ainda precisa ser testado. Gere exatamente duas propostas: uma para WDOFUT e
-uma para WINFUT. Elas devem ser mensuráveis, falsificáveis e independentes.
+Use somente o contexto fornecido. Não invente contagens, métricas ou resultados.
+Toda proposta precisa sair pronta para o executor: condição mensurável de
+entrada, lado, preenchimento no próximo negócio, stop, alvo, time stop,
+break-even, trailing, saída parcial, sessão e quantidade. Se uma ideia exigir
+uma feature que ainda não está no DSL, declare isso e não a apresente como
+executável.
+
+O executor V1 aceita a feature `absorption_extreme`, distâncias em ticks,
+uma posição por estratégia/ativo/sessão, retorno bruto e fase development.
+Use exatamente `max_variants=500`, `max_seconds=7200` e `max_generations=5`.
+O alvo de pesquisa é R$ 1.000 brutos por contrato/mês no portfólio do ativo;
+R$ 700–R$ 1.300 é apenas faixa diagnóstica; drawdown acima de R$ 5.000 por
+contrato é rejeição do candidato. Gere exatamente duas propostas: uma para
+WDOFUT e uma para WINFUT.
 
 Responda SOMENTE com JSON válido neste formato:
 {
@@ -126,13 +136,37 @@ Responda SOMENTE com JSON válido neste formato:
       "observation": "...",
       "mechanism": "...",
       "payload": {
-        "entry_definition": "...",
-        "exit_policy_id": "fixed|break_even|trailing|partial|time_stop|session_close",
-        "horizons_minutes": [1, 5, 15],
-        "primary_metric": "net_pnl_per_contract_month",
+        "contract_version": "hermes_execution_v2",
+        "primary_metric": "gross_pnl_per_contract_month",
+        "execution_spec": {
+          "version": 1,
+          "feature": {
+            "kind": "absorption_extreme",
+            "aggression_quantile": 0.95,
+            "absorption_move_quantile": 0.25,
+            "trade_types": ["AggressorBuyer", "AggressorSeller"]
+          },
+          "entry": {
+            "timing": "first_trade_after_signal_minute",
+            "side": "same_as_signed_aggression"
+          },
+          "exit": {
+            "stop_ticks": 20,
+            "target_ticks": 40,
+            "time_stop_minutes": 15,
+            "break_even": {"enabled": true, "activate_ticks": 20, "offset_ticks": 0},
+            "trailing": {"enabled": false, "activate_ticks": 30, "distance_ticks": 20, "step_ticks": 5},
+            "partial": {"enabled": false, "fraction": 0.5, "target_ticks": 20},
+            "session_close": true
+          },
+          "position": {
+            "contracts_by_asset": {"WDOFUT": 10, "WINFUT": 50},
+            "one_open_position_per_strategy_asset": true
+          }
+        },
         "baselines": [],
         "falsifiers": [],
-        "max_variants": 1
+        "search_budget": {"max_variants": 500, "max_seconds": 7200, "max_generations": 5}
       }
     }
   ]
@@ -265,14 +299,29 @@ def write_proposals(parsed: dict[str, Any], context_hash: str) -> int:
         if hypothesis_key in existing:
             continue
         payload = item.get("payload") if isinstance(item.get("payload"), dict) else {}
+        execution_spec = payload.get("execution_spec")
+        if not isinstance(execution_spec, dict):
+            raise ValueError(f"proposal {asset} has no executable execution_spec")
+        if execution_spec.get("version") != 1:
+            raise ValueError(f"proposal {asset} has unsupported execution_spec version")
+        if execution_spec.get("feature", {}).get("kind") != "absorption_extreme":
+            raise ValueError(f"proposal {asset} uses an unsupported feature kind")
+        if execution_spec.get("entry", {}).get("timing") != "first_trade_after_signal_minute":
+            raise ValueError(f"proposal {asset} uses unsupported entry timing")
         payload = {
             **payload,
-            "contract_version": "hermes_hypothesis_v1",
-            "primary_metric": "net_pnl_per_contract_month",
+            "contract_version": "hermes_execution_v2",
+            "primary_metric": "gross_pnl_per_contract_month",
             "target_monthly_pnl_per_contract": 1000,
             "diagnostic_monthly_band": [700, 1300],
+            "max_drawdown_per_contract": 5000,
             "base_contracts": {"WDOFUT": 10, "WINFUT": 50},
+            "search_budget": {"max_variants": 500, "max_seconds": 7200, "max_generations": 5},
             "data_scope": "development-only",
+            "pricing_policy": "gross_only",
+            "costs_applied": False,
+            "slippage_applied": False,
+            "holdout_accessed": False,
             "source_context_sha256": context_hash,
             "llm_model": MODEL_NAME,
             "generated_at": utc_now(),
@@ -343,8 +392,9 @@ que está documentado no contexto, o que é inferência e o que ainda precisa de
 teste determinístico.
 
 Não altere o protocolo, não acesse holdout, não execute pesquisa e não promova a
-estratégia. Se a objeção exigir dados que não estão no contexto, diga exatamente
-qual consulta, baseline, placebo ou teste deve ser executado.
+estratégia. Se propuser uma revisão executável, inclua uma `execution_spec` V1
+completa no payload; se a objeção exigir dados que não estão no contexto, diga
+exatamente qual consulta, baseline, placebo ou teste deve ser executado.
 
 Responda SOMENTE com JSON válido neste formato:
 {

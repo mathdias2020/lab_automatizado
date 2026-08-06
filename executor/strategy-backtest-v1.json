@@ -1,0 +1,42 @@
+{
+  "executor_id": "strategy_backtest_v1",
+  "version": "1.0.0",
+  "asset": "ASSET_FILLED_BY_WORKER",
+  "phase": "development",
+  "train_start": "2012-04-01T00:00:00",
+  "train_end_exclusive": "2023-01-01T00:00:00",
+  "evaluation_start": "2012-04-01T00:00:00",
+  "evaluation_end_exclusive": "2023-01-01T00:00:00",
+  "source_timezone": "America/Sao_Paulo",
+  "pricing_policy": "gross_only",
+  "costs_applied": false,
+  "slippage_applied": false,
+  "holdout_accessed": false,
+  "holdout_policy": "2025_plus_locked_except_preregistered_probe_months",
+  "execution_spec": {
+    "version": 1,
+    "feature": {
+      "kind": "absorption_extreme",
+      "aggression_quantile": 0.95,
+      "absorption_move_quantile": 0.25,
+      "trade_types": ["AggressorBuyer", "AggressorSeller"]
+    },
+    "entry": {
+      "timing": "first_trade_after_signal_minute",
+      "side": "same_as_signed_aggression"
+    },
+    "exit": {
+      "stop_ticks": 20,
+      "target_ticks": 40,
+      "time_stop_minutes": 15,
+      "break_even": {"enabled": true, "activate_ticks": 20, "offset_ticks": 0},
+      "trailing": {"enabled": false, "activate_ticks": 30, "distance_ticks": 20, "step_ticks": 5},
+      "partial": {"enabled": false, "fraction": 0.5, "target_ticks": 20},
+      "session_close": true
+    },
+    "position": {
+      "contracts_by_asset": {"WDOFUT": 10, "WINFUT": 50},
+      "one_open_position_per_strategy_asset": true
+    }
+  }
+}

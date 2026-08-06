@@ -116,7 +116,7 @@ export default function HypothesisReview({ hypothesis, session, onChanged, onNot
       const body = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(body.error ?? "Não foi possível registrar a decisão.");
       setDecisionNote("");
-      onNotify(status === "approved_for_test" ? "Hipótese aprovada somente para teste." : "Hipótese rejeitada.");
+      onNotify(status === "approved_for_test" ? "Hipótese aprovada; teste bruto enfileirado." : "Hipótese rejeitada.");
       await Promise.all([loadMessages(), onChanged()]);
     } catch (error) {
       onNotify(error instanceof Error ? error.message : "Falha ao registrar a decisão.");

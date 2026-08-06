@@ -127,6 +127,7 @@ class Settings:
     run_timeout_seconds: int
     quality_runner: str
     research_runner: str
+    strategy_runner: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -151,6 +152,9 @@ class Settings:
             ),
             research_runner=os.environ.get(
                 "RESEARCH_RUNNER", "/usr/local/sbin/lab-automatizado-research-run"
+            ),
+            strategy_runner=os.environ.get(
+                "STRATEGY_RUNNER", "/usr/local/sbin/lab-automatizado-strategy-run"
             ),
         )
 
@@ -191,6 +195,7 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
     runners = {
         "quality_benchmark": (settings.quality_runner, "quality_csv"),
         "research": (settings.research_runner, "research_artifact"),
+        "strategy_backtest": (settings.strategy_runner, "strategy_backtest_artifact"),
     }
     runner_spec = runners.get(run_type)
     if runner_spec is None:
@@ -199,8 +204,40 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
     runner, artifact_type = runner_spec
     if run_type == "research" and config.get("research_id") != "absorption_event_study_v1":
         return "failed", "Somente absorption_event_study_v1 esta permitido no worker inicial."
-    if run_type == "research" and config.get("asset") not in {"WDOFUT", "WINFUT"}:
+    if run_type in {"research", "strategy_backtest"} and config.get("asset") not in {"WDOFUT", "WINFUT"}:
         return "failed", "A pesquisa exige asset WDOFUT ou WINFUT."
+    if run_type == "strategy_backtest":
+        if config.get("executor_id") != "strategy_backtest_v1":
+            return "failed", "Executor de estratégia não permitido."
+        if config.get("phase") != "development":
+            return "failed", "O worker inicial só aceita a fase development."
+        if config.get("holdout_accessed") is not False:
+            return "failed", "Holdout bloqueado no executor de desenvolvimento."
+        if config.get("costs_applied") is not False or config.get("slippage_applied") is not False:
+            return "failed", "Este laboratório executa somente retorno bruto."
+        spec = config.get("execution_spec")
+        if not isinstance(spec, dict):
+            return "failed", "Hipótese sem execution_spec declarativa."
+        if spec.get("version") != 1 or spec.get("feature", {}).get("kind") != "absorption_extreme":
+            return "failed", "Feature declarativa ainda não suportada pelo executor V1."
+        entry = spec.get("entry", {})
+        exit_policy = spec.get("exit", {})
+        if entry.get("timing") != "first_trade_after_signal_minute":
+            return "failed", "Timing de entrada não suportado pelo executor V1."
+        required_exit = {"stop_ticks", "target_ticks", "time_stop_minutes", "break_even", "trailing", "partial"}
+        if not required_exit.issubset(exit_policy):
+            return "failed", "Política de saída incompleta."
+        if any(int(exit_policy.get(name, 0)) <= 0 for name in ("stop_ticks", "target_ticks", "time_stop_minutes")):
+            return "failed", "Stop, alvo e time stop devem ser positivos."
+        partial = exit_policy.get("partial")
+        if not isinstance(partial, dict) or not (0 < float(partial.get("fraction", 0.5)) < 1):
+            return "failed", "Fração de saída parcial inválida."
+
+        run_root = Path(f"/srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}")
+        run_root.mkdir(parents=True, exist_ok=True)
+        (run_root / "config.json").write_text(
+            json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8"
+        )
 
     try:
         completed = subprocess.run(
@@ -230,7 +267,7 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
 
 def run_loop(settings: Settings, once: bool) -> None:
     gateway = Gateway(settings.supabase_url, settings.service_role_key)
-    capabilities = ["quality_benchmark", "absorption_event_study_v1"]
+    capabilities = ["quality_benchmark", "absorption_event_study_v1", "strategy_backtest_v1", "gross_only", "development_only"]
     last_heartbeat = 0.0
 
     while True:

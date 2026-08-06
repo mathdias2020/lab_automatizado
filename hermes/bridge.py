@@ -126,6 +126,15 @@ def read_validated_proposal(path: Path) -> tuple[dict[str, Any], int]:
     payload = proposal.get("payload")
     if not isinstance(payload, dict) or len(json.dumps(payload)) > 20000:
         raise ValueError("invalid proposal payload")
+    if payload.get("contract_version") != "hermes_execution_v2":
+        raise ValueError("proposal is missing hermes_execution_v2 contract")
+    execution_spec = payload.get("execution_spec")
+    if not isinstance(execution_spec, dict) or execution_spec.get("version") != 1:
+        raise ValueError("proposal is missing executable execution_spec")
+    if execution_spec.get("feature", {}).get("kind") != "absorption_extreme":
+        raise ValueError("proposal feature is not supported by executor V1")
+    if payload.get("primary_metric") != "gross_pnl_per_contract_month":
+        raise ValueError("proposal must use gross_pnl_per_contract_month")
     return proposal, path.stat().st_mtime_ns
 
 
