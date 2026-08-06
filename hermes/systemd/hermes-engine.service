@@ -9,6 +9,7 @@ User=labadmin
 Group=labadmin
 WorkingDirectory=/srv/labs/projects/lab_automatizado/hermes
 EnvironmentFile=/etc/lab-automatizado/hermes.env
+Environment="HERMES_DATASET=/srv/labs/datasets/raw/full"
 ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/hermes/engine.py
 Restart=always
 RestartSec=20
@@ -24,7 +25,7 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 CapabilityBoundingSet=
 RestrictAddressFamilies=AF_INET AF_INET6
-ReadOnlyPaths=/srv/labs/datasets/canonical /srv/labs/projects/lab_automatizado/hermes/context /srv/labs/projects/lab_automatizado/hermes/reviews/inbox
+ReadOnlyPaths=/srv/labs/datasets/raw/full /srv/labs/datasets/canonical /srv/labs/projects/lab_automatizado/hermes/context /srv/labs/projects/lab_automatizado/hermes/reviews/inbox
 ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/proposals /srv/labs/projects/lab_automatizado/hermes/reviews/responses /srv/labs/projects/lab_automatizado/hermes/logs /srv/labs/projects/lab_automatizado/hermes/work
 
 [Install]
