@@ -83,7 +83,10 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Benchmark automático concluído com `succeeded`, três artefatos e hashes registrados.
 - [x] Supabase Auth integrado ao painel; `service_role` permanece apenas server-side.
 - [x] Painel vinculado ao projeto Vercel `lab-automatizado-panel`, com produção publicada.
-- [ ] Criar o primeiro usuário autorizado em Supabase Authentication → Users.
+- [x] Primeiro usuário autorizado criado e login validado via Supabase Auth.
+- [x] `PANEL_ALLOWED_EMAILS` configurado para restringir o painel deste laboratório.
+- [x] Deployment Protection SSO da Vercel desativado; o limite de acesso agora é o Supabase Auth do painel.
+- [x] Fluxo ponta a ponta validado: login → API autenticada → enqueue → worker Docker → `succeeded`.
 
 Relatório: `outputs/quality-expanded-v1-run-2026-08-05.md`.
 
@@ -92,11 +95,9 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 ## Próxima etapa
 
 1. definir a primeira métrica/feature de pesquisa semântica, separadamente para WDO e WIN;
-2. criar o primeiro usuário no Supabase e testar login, leitura e enfileiramento pelo painel;
-3. opcionalmente preencher `PANEL_ALLOWED_EMAILS` para restringir este painel em relação ao outro laboratório;
-4. criar um experimento baseline com `run_id`, configuração e custos explícitos;
-5. manter a execução por fila/partição na KVM2;
-6. só depois iniciar descoberta de hipóteses por agentes.
+2. criar um experimento baseline com `run_id`, configuração e custos explícitos;
+3. manter a execução por fila/partição na KVM2;
+4. só depois iniciar descoberta de hipóteses por agentes.
 
 ## Fora do escopo atual
 

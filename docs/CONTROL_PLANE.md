@@ -62,7 +62,8 @@ O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.ve
 - o navegador usa `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e envia o bearer token da sessão;
 - a API server-side valida a sessão em `/auth/v1/user` antes de chamar as RPCs com `SUPABASE_SERVICE_ROLE_KEY`;
 - as variáveis de produção e preview estão configuradas no projeto Vercel; a chave privilegiada está marcada como sensível;
-- `PANEL_ALLOWED_EMAILS` pode receber uma lista separada por vírgulas para restringir este painel aos usuários deste laboratório;
+- `PANEL_ALLOWED_EMAILS` está configurado para restringir este painel ao usuário autorizado deste laboratório;
+- o SSO de Deployment Protection da Vercel foi desativado para não interpor uma segunda autenticação antes da sessão do Supabase; o acesso continua protegido por Supabase Auth e pela allowlist server-side;
 - a interface não deve permitir `research` arbitrário antes de existir um executor aprovado para esse tipo.
 
-Antes do primeiro uso, criar um usuário em Supabase `Authentication → Users`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser.
+O primeiro usuário foi criado e o fluxo foi validado: login, leitura, enfileiramento pelo painel, execução no worker Docker e finalização `succeeded`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser.

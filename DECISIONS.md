@@ -18,6 +18,14 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** manter a interface de controle independente, com variáveis sensíveis server-side e deploys reproduzíveis a partir da pasta `panel/`.
 - **Impacto:** o perfil `lab-automatizado` agora vincula GitHub, Supabase e Vercel; o endpoint de produção é `https://lab-automatizado-panel.vercel.app/`.
 
+## D-025 — Acesso do painel por Supabase Auth e allowlist
+
+- **Data:** 2026-08-06
+- **Status:** vigente
+- **Decisão:** o painel usa Supabase Auth como autenticação única de aplicação e mantém `PANEL_ALLOWED_EMAILS` configurado para este laboratório; a Deployment Protection SSO da Vercel permanece desativada.
+- **Motivo:** evitar uma segunda conta/proteção da Vercel bloqueando as rotas antes da autenticação do painel, sem deixar o gateway exposto a usuários anônimos.
+- **Impacto:** login, API autenticada, enqueue, worker Docker e finalização `succeeded` foram validados ponta a ponta; credenciais não são armazenadas no repositório nem nos logs.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05
