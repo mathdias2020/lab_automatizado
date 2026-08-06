@@ -94,6 +94,18 @@ Antes do teste, o Hermes deve responder:
 Quando possível, a crítica será executada em uma sessão/contexto separado. A
 revisão adversarial não substitui o nulo estatístico.
 
+### 5.1 Conversa humana com o Hermes
+
+O painel mantém uma thread append-only por hipótese. O humano pode enviar uma
+objeção, pergunta ou pedido de esclarecimento; a bridge privada reivindica essa
+mensagem e a entrega ao engine sem expor `service_role` ao engine. O Hermes
+responde com `response`, `revision_proposal` ou `abandonment`, sempre registrando
+o payload de incertezas e testes sugeridos.
+
+O botão **Aprovar para teste** é separado de **Enviar ao Hermes**. Aprovar apenas
+autoriza uma futura especificação congelada a entrar no executor determinístico;
+não executa, não promove e não transforma a resposta textual em evidência.
+
 ## 6. Políticas de saída
 
 Break-even, trailing stop, saída parcial, time stop e encerramento de sessão
@@ -169,6 +181,7 @@ autônoma:
 - `agents` registra estado, modo, versão, capacidades e heartbeat;
 - `hypotheses` registra propostas, origem, mecanismo, payload e revisão humana;
 - `agent_events` fica reservado para o diário operacional do agente;
+- `hypothesis_messages` registra a conversa humana/Hermes e seu estado técnico de entrega;
 - o estado inicial é `offline`/`disabled`;
 - uma aprovação no painel apenas muda a hipótese para `approved_for_test`; ela
   não inicia um run nem promove uma estratégia;

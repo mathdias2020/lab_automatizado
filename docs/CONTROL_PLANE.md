@@ -105,3 +105,16 @@ plane.
 O primeiro ciclo do motor registrou duas hipóteses no registry, uma por ativo.
 Elas aparecem no painel como `proposed` e aguardam revisão humana; nenhum run
 foi iniciado automaticamente.
+
+## Thread de revisão Hermes–humano
+
+O painel expõe uma conversa por hipótese em `/api/hypotheses/[id]/messages`.
+Mensagens humanas entram como `pending`; a bridge com `service_role` reivindica
+uma por vez, grava um pedido JSON em `hermes/reviews/inbox/`, e o engine grava a
+resposta em `hermes/reviews/responses/`. A bridge valida o envelope e registra a
+resposta no Supabase por RPC.
+
+O engine continua sem `service_role`, sem Docker socket, sem holdout e sem
+permissão para executar ou promover uma estratégia. O conteúdo da conversa não
+é sobrescrito; apenas os campos de entrega podem mudar para `claimed`,
+`answered` ou `failed`.

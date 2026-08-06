@@ -23,8 +23,8 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 CapabilityBoundingSet=
 RestrictAddressFamilies=AF_INET AF_INET6
-ReadOnlyPaths=/srv/labs/datasets/canonical /srv/labs/projects/lab_automatizado/hermes/context
-ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/proposals /srv/labs/projects/lab_automatizado/hermes/logs /srv/labs/projects/lab_automatizado/hermes/work
+ReadOnlyPaths=/srv/labs/datasets/canonical /srv/labs/projects/lab_automatizado/hermes/context /srv/labs/projects/lab_automatizado/hermes/reviews/inbox
+ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/proposals /srv/labs/projects/lab_automatizado/hermes/reviews/responses /srv/labs/projects/lab_automatizado/hermes/logs /srv/labs/projects/lab_automatizado/hermes/work
 
 [Install]
 WantedBy=multi-user.target

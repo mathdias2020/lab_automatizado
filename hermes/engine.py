@@ -31,6 +31,9 @@ REASONING_EFFORT = (
 CONTEXT_DIR = Path(os.environ.get("HERMES_CONTEXT_DIR", "/srv/labs/projects/lab_automatizado/hermes/context"))
 PROPOSALS_DIR = Path(os.environ.get("HERMES_PROPOSALS_DIR", "/srv/labs/projects/lab_automatizado/hermes/proposals"))
 WORK_DIR = Path(os.environ.get("HERMES_WORK_DIR", "/srv/labs/projects/lab_automatizado/hermes/work"))
+REVIEW_INBOX_DIR = Path(os.environ.get("HERMES_REVIEW_INBOX_DIR", "/srv/labs/projects/lab_automatizado/hermes/reviews/inbox"))
+REVIEW_RESPONSES_DIR = Path(os.environ.get("HERMES_REVIEW_RESPONSES_DIR", "/srv/labs/projects/lab_automatizado/hermes/reviews/responses"))
+REVIEW_STATE_DIR = WORK_DIR / "review-state"
 DATASET = Path(os.environ.get("HERMES_DATASET", "/srv/labs/datasets/canonical/normalized_sample_v1"))
 INTERVAL_SECONDS = float(os.environ.get("HERMES_PROPOSAL_INTERVAL_SECONDS", "21600"))
 MAX_CONTEXT_BYTES = int(os.environ.get("HERMES_MAX_CONTEXT_BYTES", "180000"))
@@ -212,6 +215,20 @@ def parse_json(text: str) -> dict[str, Any]:
     return parsed
 
 
+def parse_json_object(text: str) -> dict[str, Any]:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`").replace("json\n", "", 1).strip()
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start < 0 or end <= start:
+        raise ValueError("model output is not JSON")
+    parsed = json.loads(cleaned[start : end + 1])
+    if not isinstance(parsed, dict):
+        raise ValueError("model output is not a JSON object")
+    return parsed
+
+
 def clip(value: object, limit: int = 4000) -> str:
     return str(value).strip()[:limit]
 
@@ -303,6 +320,172 @@ def generate_once() -> int:
     return result
 
 
+def review_model_request(review_request: dict[str, Any]) -> dict[str, Any]:
+    if MODEL_PROVIDER != "openai":
+        raise RuntimeError(f"Unsupported model provider: {MODEL_PROVIDER}")
+    if not MODEL_API_KEY:
+        raise RuntimeError("HERMES_MODEL_API_KEY is empty")
+
+    context, context_hash = collect_context()
+    thread = review_request.get("thread")
+    if not isinstance(thread, list):
+        raise ValueError("review request thread is invalid")
+
+    system_prompt = """
+Você é Hermes, pesquisador adaptativo de um laboratório quantitativo intraday.
+Você está respondendo a uma objeção humana sobre uma hipótese já registrada.
+
+Você pode defender a hipótese, reconhecer uma falha, propor uma reformulação ou
+recomendar abandono. Não pode inventar contagens, métricas, resultados, custos ou
+evidências. Não trate memória textual como prova de lucratividade. Diferencie o
+que está documentado no contexto, o que é inferência e o que ainda precisa de
+teste determinístico.
+
+Não altere o protocolo, não acesse holdout, não execute pesquisa e não promova a
+estratégia. Se a objeção exigir dados que não estão no contexto, diga exatamente
+qual consulta, baseline, placebo ou teste deve ser executado.
+
+Responda SOMENTE com JSON válido neste formato:
+{
+  "message_type": "response|revision_proposal|abandonment",
+  "message": "resposta clara e auditável",
+  "payload": {
+    "stance": "defend|revise|abandon",
+    "evidence_basis": [],
+    "remaining_uncertainty": [],
+    "proposed_test_changes": []
+  }
+}
+""".strip()
+    user_prompt = (
+        "Contexto do laboratório:\n"
+        + context
+        + "\n\nThread da hipótese:\n"
+        + json.dumps(thread, ensure_ascii=False, sort_keys=True)
+        + "\n\nMensagem que exige resposta:\n"
+        + json.dumps(review_request.get("message"), ensure_ascii=False, sort_keys=True)
+        + "\n\nA origem do contexto é o hash SHA-256 "
+        + context_hash
+        + ". Não alegue que esse hash é uma evidência de desempenho."
+    )
+    body = {
+        "model": MODEL_NAME,
+        "store": False,
+        "reasoning": {"effort": REASONING_EFFORT},
+        "max_output_tokens": 6000,
+        "input": [
+            {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
+            {"role": "user", "content": [{"type": "input_text", "text": user_prompt}]},
+        ],
+    }
+    request = urllib.request.Request(
+        f"{MODEL_BASE_URL}/responses",
+        data=json.dumps(body).encode("utf-8"),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {MODEL_API_KEY}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=180) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        exc.read()
+        raise RuntimeError(f"Model API HTTP {exc.code}") from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"Model API network error: {exc.reason}") from exc
+
+
+def validate_review_request(path: Path) -> dict[str, Any]:
+    request = json.loads(path.read_text(encoding="utf-8"))
+    if request.get("kind") != "hermes_hypothesis_review_request":
+        raise ValueError("invalid review request kind")
+    if request.get("schema_version") != 1 or request.get("agent_key") != AGENT_KEY:
+        raise ValueError("unsupported review request")
+    for field in ("message_id", "hypothesis_id", "parent_message_id"):
+        value = request.get(field)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"invalid review request {field}")
+    if not isinstance(request.get("message"), dict) or not isinstance(request.get("thread"), list):
+        raise ValueError("invalid review request envelope")
+    return request
+
+
+def atomic_json_write(target: Path, payload: dict[str, Any]) -> None:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_name(f".{target.name}.tmp")
+    temporary.write_text(json.dumps(payload, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
+    os.replace(temporary, target)
+
+
+def process_review_request(path: Path) -> None:
+    request = validate_review_request(path)
+    parent_message_id = request["parent_message_id"]
+    state_marker = REVIEW_STATE_DIR / f"{parent_message_id}.done"
+    response_path = REVIEW_RESPONSES_DIR / f"{parent_message_id}.json"
+    if state_marker.exists() or response_path.exists():
+        return
+
+    write_engine_status(
+        "reviewing",
+        "proposal",
+        ["read_development_data", "adversarial_review"],
+        {"model": MODEL_NAME, "hypothesis_id": request["hypothesis_id"], "execution_enabled": False},
+    )
+    try:
+        parsed = parse_json_object(output_text(review_model_request(request)))
+        message_type = parsed.get("message_type")
+        message = parsed.get("message")
+        payload = parsed.get("payload") if isinstance(parsed.get("payload"), dict) else {}
+        if message_type not in {"response", "revision_proposal", "abandonment"}:
+            raise ValueError("invalid Hermes review message type")
+        if not isinstance(message, str) or not message.strip() or len(message) > 8000:
+            raise ValueError("invalid Hermes review message")
+        response = {
+            "kind": "hermes_hypothesis_review_response",
+            "schema_version": 1,
+            "agent_key": AGENT_KEY,
+            "message_id": request["message_id"],
+            "hypothesis_id": request["hypothesis_id"],
+            "parent_message_id": parent_message_id,
+            "message_type": message_type,
+            "message": message.strip(),
+            "payload": payload,
+        }
+    except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
+        response = {
+            "kind": "hermes_hypothesis_review_failure",
+            "schema_version": 1,
+            "agent_key": AGENT_KEY,
+            "message_id": request["message_id"],
+            "parent_message_id": parent_message_id,
+            "error": str(exc)[:1000],
+        }
+    finally:
+        write_engine_status(
+            "observing",
+            "observation",
+            ["read_development_data", "propose_hypotheses", "adversarial_review"],
+            {"model": MODEL_NAME, "execution_enabled": False},
+        )
+
+    atomic_json_write(response_path, response)
+    state_marker.parent.mkdir(parents=True, exist_ok=True)
+    state_marker.write_text(utc_now() + "\n", encoding="utf-8")
+
+
+def process_review_requests() -> int:
+    if not REVIEW_INBOX_DIR.is_dir():
+        return 0
+    processed = 0
+    for path in sorted(REVIEW_INBOX_DIR.glob("*.json"))[:3]:
+        process_review_request(path)
+        processed += 1
+    return processed
+
+
 def main() -> int:
     signal.signal(signal.SIGTERM, stop)
     signal.signal(signal.SIGINT, stop)
@@ -315,8 +498,12 @@ def main() -> int:
     )
     while _running:
         try:
-            created = generate_once()
-            print(f"Hermes proposal cycle complete: {created} new proposal(s)", flush=True)
+            reviewed = process_review_requests()
+            if reviewed:
+                print(f"Hermes review cycle complete: {reviewed} request(s)", flush=True)
+            else:
+                created = generate_once()
+                print(f"Hermes proposal cycle complete: {created} new proposal(s)", flush=True)
         except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
             print(f"Hermes engine warning: {exc}", flush=True)
         for _ in range(max(1, int(INTERVAL_SECONDS))):

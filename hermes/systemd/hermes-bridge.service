@@ -23,7 +23,7 @@ RestrictSUIDSGID=true
 CapabilityBoundingSet=CAP_DAC_READ_SEARCH
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 ReadOnlyPaths=/srv/labs/projects/lab_automatizado/hermes/outbox /srv/labs/projects/lab_automatizado/hermes/proposals
-ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/logs
+ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/reviews/inbox /srv/labs/projects/lab_automatizado/hermes/reviews/responses /srv/labs/projects/lab_automatizado/hermes/logs
 
 [Install]
 WantedBy=multi-user.target

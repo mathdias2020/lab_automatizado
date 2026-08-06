@@ -63,7 +63,7 @@ def engine_status() -> tuple[str, str, list[str], dict[str, object]]:
         mode = payload.get("mode")
         capabilities = payload.get("capabilities")
         metadata = payload.get("metadata")
-        if status not in {"observing", "proposing"} or mode not in {"observation", "proposal"}:
+        if status not in {"observing", "proposing", "reviewing"} or mode not in {"observation", "proposal"}:
             return default
         if not isinstance(capabilities, list) or not isinstance(metadata, dict):
             return default

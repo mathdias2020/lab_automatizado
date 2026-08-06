@@ -121,6 +121,36 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
 .hypothesis-approve:hover { border-color: var(--green); color: var(--green); }
 .hypothesis-reject:hover { border-color: var(--red); color: var(--red); }
 .hypothesis-review-note { margin: 18px 0 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.hypothesis-review-panel { margin-top: 18px; border-top: 1px solid var(--line-soft); }
+.hypothesis-review-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; }
+.hypothesis-review-toolbar strong { display: block; color: var(--text-soft); font-size: 11px; font-weight: 600; }
+.hypothesis-review-toolbar p { margin: 4px 0 0; color: var(--text-muted); font-size: 10px; }
+.hypothesis-review-thread { display: grid; gap: 14px; margin-top: 16px; padding: 16px; border: 1px solid var(--line-soft); background: rgba(8, 13, 24, 0.42); }
+.thread-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.thread-refresh { padding: 0; border: 0; background: transparent; color: var(--text-muted); font-family: monospace; font-size: 10px; }
+.thread-refresh:hover { color: var(--cyan); }
+.thread-messages { display: grid; gap: 8px; max-height: 420px; overflow-y: auto; }
+.thread-message { padding: 12px; border-left: 2px solid var(--line); background: rgba(17, 26, 43, 0.7); }
+.thread-message-human { border-left-color: var(--amber); }
+.thread-message-hermes { border-left-color: var(--cyan); }
+.thread-message-system { border-left-color: var(--text-muted); }
+.thread-message-meta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--text-muted); font-family: monospace; font-size: 9px; letter-spacing: 0.02em; }
+.thread-message-meta span:first-child { color: var(--text-soft); font-weight: 700; }
+.thread-message p { margin: 9px 0 0; color: var(--text); font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
+.thread-message small { display: block; margin-top: 8px; font-family: monospace; font-size: 9px; }
+.thread-pending { color: var(--amber); }
+.thread-failed { color: var(--red); }
+.thread-empty, .thread-locked { margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.thread-composer { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.thread-composer-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.thread-composer label, .decision-gate label { color: var(--text-muted); font-family: monospace; font-size: 10px; }
+.thread-composer select, .thread-composer textarea, .decision-gate input { width: 100%; border: 1px solid var(--line); border-radius: 6px; outline: 0; background: var(--ink-soft); color: var(--text); font: inherit; font-size: 12px; }
+.thread-composer select { width: auto; min-width: 180px; padding: 8px 10px; }
+.thread-composer textarea { min-height: 108px; padding: 11px 12px; resize: vertical; line-height: 1.55; }
+.thread-composer textarea:focus, .thread-composer select:focus, .decision-gate input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+.thread-composer-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-muted); font-family: monospace; font-size: 9px; }
+.decision-gate { display: grid; gap: 8px; margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line-soft); }
+.decision-gate input { padding: 10px 12px; }
 .run-table { overflow: hidden; }
 .run-row { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(110px, 0.75fr) minmax(150px, 1fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr); align-items: center; gap: 16px; min-height: 66px; padding: 0 20px; border-top: 1px solid var(--line-soft); color: var(--text-soft); font-family: monospace; font-size: 11px; font-variant-numeric: tabular-nums; }
 .run-row-heading { min-height: 42px; border-top: 0; color: var(--text-muted); font-family: "Cascadia Code", "SFMono-Regular", monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }

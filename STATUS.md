@@ -118,6 +118,19 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 
 Relatório: `docs/ABSORPTION_EVENT_STUDY_V1.md`.
 
+## Thread de revisão Hermes–humano — 2026-08-06
+
+- [x] Tabela privada `hypothesis_messages` criada com RLS e grants somente para `service_role`.
+- [x] RPCs de leitura, postagem, claim, resposta e falha aplicadas no Supabase.
+- [x] Fila pendente é fechada quando a hipótese é aprovada, rejeitada ou arquivada antes da resposta.
+- [x] Smoke test transacional postar → claim → responder executado sem persistir dados de teste.
+- [x] Endpoint autenticado do painel para listar e enviar mensagens implementado.
+- [x] UI com thread, objeção, pergunta, resposta pendente e gate separado de aprovação implementada.
+- [x] Engine Hermes preparado para responder mensagens por inbox/outbox sem receber `service_role`.
+- [x] Bridge Hermes preparada para entregar e validar respostas por RPC.
+- [ ] Publicar estes arquivos na VPS e reiniciar `hermes-bridge.service`/`hermes-engine.service`.
+- [ ] Publicar o painel no Vercel e validar a conversa com uma hipótese real.
+
 Relatório: `outputs/quality-expanded-v1-run-2026-08-05.md`.
 
 Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
