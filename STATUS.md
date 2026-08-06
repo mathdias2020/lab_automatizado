@@ -37,6 +37,13 @@
 - [x] Dataset bruto fechado como `root:root`, diretórios `0555` e arquivos `0444`.
 - [x] Nenhuma camada normalizada integral foi criada; a KVM2 preserva espaço para os runs.
 
+## Limite consciente antes do primeiro backtest real
+
+- [x] O executor recebe uma hipótese executável congelada e testa entradas/saídas determinísticas em modo bruto.
+- [x] O Hermes tem o snapshot `raw/full` montado em leitura e recebe seus fatos de disponibilidade no contexto.
+- [ ] O profiler DuckDB que transforma microestrutura bruta em tabelas de descoberta ainda precisa ser ativado para o Hermes; o modelo não deve tratar texto ou contagem de arquivos como evidência de padrão.
+- [ ] O laço de busca de até 500 variantes e 5 gerações ainda não está ativo; o orçamento está registrado, mas o primeiro run deliberadamente valida uma especificação congelada antes de multiplicar a carga na KVM2.
+
 ## Validação do container mínimo — 2026-08-05
 
 - [x] Imagem oficial `duckdb/duckdb` executada na VPS.
