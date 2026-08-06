@@ -178,7 +178,18 @@ def claim_review_request() -> None:
         "message": message,
         "thread": claimed.get("thread") if isinstance(claimed.get("thread"), list) else [],
     }
-    atomic_json_write(REVIEW_INBOX_DIR / f"{message_id}.json", payload)
+    try:
+        atomic_json_write(REVIEW_INBOX_DIR / f"{message_id}.json", payload)
+    except (OSError, TypeError, ValueError) as exc:
+        rpc(
+            "lab_automatizado_requeue_hypothesis_message",
+            {
+                "p_message_id": message_id,
+                "p_agent_key": AGENT_KEY,
+                "p_reason": f"review inbox delivery failed: {exc}",
+            },
+        )
+        raise
     print(f"Hermes review request claimed: message={message_id}", flush=True)
 
 

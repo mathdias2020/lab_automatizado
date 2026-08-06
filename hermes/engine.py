@@ -36,6 +36,7 @@ REVIEW_RESPONSES_DIR = Path(os.environ.get("HERMES_REVIEW_RESPONSES_DIR", "/srv/
 REVIEW_STATE_DIR = WORK_DIR / "review-state"
 DATASET = Path(os.environ.get("HERMES_DATASET", "/srv/labs/datasets/canonical/normalized_sample_v1"))
 INTERVAL_SECONDS = float(os.environ.get("HERMES_PROPOSAL_INTERVAL_SECONDS", "21600"))
+REVIEW_POLL_SECONDS = float(os.environ.get("HERMES_REVIEW_POLL_SECONDS", "3"))
 MAX_CONTEXT_BYTES = int(os.environ.get("HERMES_MAX_CONTEXT_BYTES", "180000"))
 
 _running = True
@@ -496,20 +497,19 @@ def main() -> int:
         f"(reasoning={REASONING_EFFORT})",
         flush=True,
     )
+    next_proposal_at = 0.0
     while _running:
         try:
             reviewed = process_review_requests()
             if reviewed:
                 print(f"Hermes review cycle complete: {reviewed} request(s)", flush=True)
-            else:
+            elif time.monotonic() >= next_proposal_at:
                 created = generate_once()
                 print(f"Hermes proposal cycle complete: {created} new proposal(s)", flush=True)
+                next_proposal_at = time.monotonic() + max(1, INTERVAL_SECONDS)
         except (OSError, ValueError, RuntimeError, json.JSONDecodeError) as exc:
             print(f"Hermes engine warning: {exc}", flush=True)
-        for _ in range(max(1, int(INTERVAL_SECONDS))):
-            if not _running:
-                break
-            time.sleep(1)
+        time.sleep(max(0.5, REVIEW_POLL_SECONDS))
     return 0
 
 
