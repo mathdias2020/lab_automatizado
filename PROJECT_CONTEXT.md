@@ -1,6 +1,6 @@
 # Laboratório de Estratégias IA — Contexto do Projeto
 
-**Status:** Fase 3 — objetivo de portfólio e desenho do sistema Hermes
+**Status:** Fase 4 — bootstrap observacional do sistema Hermes
 **Data de referência:** 2026-08-06
 **Nome do laboratório:** Laboratório Automatizado  
 **ID técnico:** lab_automatizado  
@@ -178,8 +178,9 @@ O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas se
 O monitoramento Hermes V1 também está publicado: a tela mostra o estado do
 agente, modo, heartbeat e fila de hipóteses. A revisão humana pode marcar uma
 hipótese como `approved_for_test`, mas não inicia execução e não promove
-estratégia. O agente permanece inicialmente `offline`/`disabled` até o runtime
-isolado ser instalado na VPS.
+estratégia. O bootstrap observacional está ativo na VPS em
+`/srv/labs/projects/lab_automatizado/hermes`; ele não possui rede,
+`service_role`, Docker socket ou geração de hipóteses.
 
 O primeiro estudo de pesquisa foi executado em 2026-08-06 sobre a amostra histórica parcial. Os resultados e limites estão em `docs/ABSORPTION_EVENT_STUDY_V1.md`; eles não autorizam promoção nem operação.
 

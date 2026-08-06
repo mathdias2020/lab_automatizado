@@ -1,0 +1,29 @@
+[Unit]
+Description=Laboratorio Automatizado Hermes Supabase bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/srv/labs/projects/lab_automatizado/hermes
+EnvironmentFile=/etc/lab-automatizado/worker.env
+ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/hermes/bridge.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_DAC_READ_SEARCH
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+ReadOnlyPaths=/srv/labs/projects/lab_automatizado/hermes/outbox
+ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/logs
+
+[Install]
+WantedBy=multi-user.target

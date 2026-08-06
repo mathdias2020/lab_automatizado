@@ -85,7 +85,16 @@ As funções RPC específicas são `lab_automatizado_list_agents`,
 `lab_automatizado_heartbeat_agent` e `lab_automatizado_record_hypothesis`.
 Todas exigem `service_role`; não há leitura direta das tabelas pelo navegador.
 
-O painel mostra o Hermes como `offline` e `disabled` até que o runtime seja
-instalado e passe a emitir heartbeat. A revisão humana no painel não dispara
-execução: `approved_for_test` é apenas uma autorização para uma etapa futura do
-control plane.
+O bootstrap do Hermes está instalado em `/srv/labs/projects/lab_automatizado/hermes`
+com dois serviços systemd:
+
+- `hermes-runtime.service`: usuário `labadmin`, sem rede, sem `service_role`,
+  sem Docker socket; lê somente a camada de desenvolvimento e grava um
+  heartbeat atômico no workspace próprio;
+- `hermes-bridge.service`: serviço separado e allowlisted, responsável por
+  ler o heartbeat e chamar a RPC privilegiada no Supabase.
+
+O painel mostra o Hermes como `observing`/`observation` enquanto o heartbeat é
+recente. A revisão humana no painel não dispara execução:
+`approved_for_test` é apenas uma autorização para uma etapa futura do control
+plane.

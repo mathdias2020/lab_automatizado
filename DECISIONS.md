@@ -61,6 +61,14 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** permitir acompanhar e governar a descoberta desde o início, mantendo a barreira entre inteligência exploratória, avaliação determinística e promoção.
 - **Impacto:** o próximo passo técnico é instalar o runtime isolado, emitir heartbeat e registrar a primeira proposta formal; a execução continua fora do escopo até esse contrato ser validado.
 
+## D-030 — Bootstrap Hermes sem credencial no runtime
+
+- **Data:** 2026-08-06
+- **Status:** vigente
+- **Decisão:** o bootstrap do Hermes roda na VPS em `hermes-runtime.service`, como `labadmin`, somente em `observation`, sem rede, sem Docker socket, sem `service_role` e sem geração de hipóteses. Uma `hermes-bridge.service` separada lê o heartbeat validado e chama somente `lab_automatizado_heartbeat_agent`.
+- **Motivo:** validar a presença do agente e a telemetria antes de conectar um motor de raciocínio ou conceder capacidade de proposta.
+- **Impacto:** o Supabase já recebe heartbeat recorrente; a próxima mudança de escopo será conectar o motor de raciocínio em modo `observation`/`proposal`, com uma chave de modelo isolada e sem acesso ao holdout.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05

@@ -1,7 +1,7 @@
 # Hermes Research System — V1
 
 **Data:** 2026-08-06
-**Status:** monitoramento V1 implementado; runtime do Hermes ainda desabilitado
+**Status:** monitoramento V1 implementado; bootstrap observacional ativo
 **Função:** descoberta adaptativa, crítica e priorização de pesquisas
 
 ## 1. Papel do Hermes
@@ -175,7 +175,10 @@ autônoma:
 - as APIs usam sessão do Supabase Auth e chamam RPCs server-side com
   `service_role`; as tabelas permanecem privadas e sem grants para o navegador.
 
-O próximo incremento é instalar o runtime isolado do Hermes na área deste
-laboratório, emitir heartbeat e registrar propostas em `hypotheses`. O runtime
-deve iniciar em modo `observation` ou `proposal`; qualquer execução deverá
-continuar limitada ao control plane e depender de aprovação humana.
+O bootstrap observacional está instalado na VPS em
+`/srv/labs/projects/lab_automatizado/hermes`. O runtime roda sem rede, sem
+`service_role`, sem Docker socket e sem geração de hipóteses. Uma bridge
+separada, protegida pelo systemd, registra somente heartbeats allowlisted no
+Supabase. O próximo incremento é conectar um motor de raciocínio em modo
+`observation`/`proposal`; qualquer execução deverá continuar limitada ao
+control plane e depender de aprovação humana.

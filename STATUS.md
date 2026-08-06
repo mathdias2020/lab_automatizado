@@ -99,7 +99,11 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Cards de estado, heartbeat, hipóteses vazias e revisão adicionados à UI.
 - [x] Painel publicado em produção com o monitoramento Hermes V1.
 - [x] Aprovação humana não dispara run nem promoção automática.
-- [ ] Runtime do Hermes instalado e emitindo heartbeat.
+- [x] Runtime observacional instalado em `/srv/labs/projects/lab_automatizado/hermes`.
+- [x] Bridge privilegiada separada instalada para registrar heartbeat via RPC allowlisted.
+- [x] `hermes-runtime.service` e `hermes-bridge.service` habilitados no boot.
+- [x] Heartbeat confirmado no Supabase com quatro Parquets canônicos disponíveis.
+- [ ] Motor de raciocínio conectado em modo `observation`/`proposal`.
 
 ## Primeiro experimento de pesquisa — 2026-08-06
 
@@ -118,7 +122,7 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. instalar o runtime isolado do Hermes na área deste laboratório e emitir heartbeat;
+1. escolher e conectar o motor de raciocínio em modo `observation`/`proposal`, sem execução;
 2. implementar o primeiro ciclo de observação → proposta formal → revisão adversarial;
 3. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
 4. conectar hipóteses aprovadas a runs allowlisted, sem promoção automática;

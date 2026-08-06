@@ -1,0 +1,28 @@
+[Unit]
+Description=Laboratorio Automatizado Hermes observation runtime
+After=network-online.target hermes-bridge.service
+
+[Service]
+Type=simple
+User=labadmin
+Group=labadmin
+WorkingDirectory=/srv/labs/projects/lab_automatizado/hermes
+ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/hermes/runtime.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX
+ReadOnlyPaths=/srv/labs/datasets/canonical
+ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/outbox /srv/labs/projects/lab_automatizado/hermes/logs /srv/labs/projects/lab_automatizado/hermes/work
+
+[Install]
+WantedBy=multi-user.target
