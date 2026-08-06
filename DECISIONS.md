@@ -69,6 +69,15 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** validar a presença do agente e a telemetria antes de conectar um motor de raciocínio ou conceder capacidade de proposta.
 - **Impacto:** o Supabase já recebe heartbeat recorrente; a próxima mudança de escopo será conectar o motor de raciocínio em modo `observation`/`proposal`, com uma chave de modelo isolada e sem acesso ao holdout.
 
+## D-031 — Motor Hermes em proposal com orçamento de raciocínio
+
+- **Data:** 2026-08-06
+- **Status:** vigente
+- **Decisão:** o `hermes-engine.service` usa `gpt-5.1` em modo `proposal`, com esforço efetivo `medium` para manter o ciclo estruturado dentro do orçamento de saída. O esforço `high` fica reservado para a futura revisão adversarial.
+- **Restrições:** o motor só lê o contexto de desenvolvimento, não recebe `service_role`, não acessa o holdout, não inicia runs e gera no máximo uma proposta por ativo para cada hash de contexto.
+- **Motivo:** o primeiro teste com esforço `high` consumiu o limite de saída apenas em raciocínio; `medium` produziu duas propostas válidas, uma WDOFUT e uma WINFUT.
+- **Impacto:** as propostas estão no painel como `proposed` e exigem revisão humana antes de qualquer execução determinística.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05

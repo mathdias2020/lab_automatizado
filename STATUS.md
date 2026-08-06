@@ -103,7 +103,9 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Bridge privilegiada separada instalada para registrar heartbeat via RPC allowlisted.
 - [x] `hermes-runtime.service` e `hermes-bridge.service` habilitados no boot.
 - [x] Heartbeat confirmado no Supabase com quatro Parquets canônicos disponíveis.
-- [ ] Motor de raciocínio conectado em modo `observation`/`proposal`.
+- [x] Motor de raciocínio conectado em modo `proposal`, sem execução.
+- [x] Primeira proposta WDOFUT e primeira proposta WINFUT registradas no Supabase.
+- [ ] Revisar humanamente as duas propostas no painel.
 
 ## Primeiro experimento de pesquisa — 2026-08-06
 
@@ -122,8 +124,8 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. escolher e conectar o motor de raciocínio em modo `observation`/`proposal`, sem execução;
-2. implementar o primeiro ciclo de observação → proposta formal → revisão adversarial;
+1. revisar as duas propostas no painel e registrar notas humanas;
+2. implementar a revisão adversarial antes de qualquer teste determinístico;
 3. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
 4. conectar hipóteses aprovadas a runs allowlisted, sem promoção automática;
 5. implementar políticas de saída versionadas: break-even, trailing, parcial, time stop e encerramento de sessão;

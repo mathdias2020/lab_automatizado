@@ -92,9 +92,16 @@ com dois serviços systemd:
   sem Docker socket; lê somente a camada de desenvolvimento e grava um
   heartbeat atômico no workspace próprio;
 - `hermes-bridge.service`: serviço separado e allowlisted, responsável por
-  ler o heartbeat e chamar a RPC privilegiada no Supabase.
+  ler heartbeats/propostas e chamar as RPCs privilegiadas no Supabase;
+- `hermes-engine.service`: usuário `labadmin`, acesso de saída somente HTTPS,
+  leitura do contexto de desenvolvimento e escrita apenas em `proposals/`;
+  recebe a credencial do modelo, mas não recebe `service_role`.
 
 O painel mostra o Hermes como `observing`/`observation` enquanto o heartbeat é
 recente. A revisão humana no painel não dispara execução:
 `approved_for_test` é apenas uma autorização para uma etapa futura do control
 plane.
+
+O primeiro ciclo do motor registrou duas hipóteses no registry, uma por ativo.
+Elas aparecem no painel como `proposed` e aguardam revisão humana; nenhum run
+foi iniciado automaticamente.

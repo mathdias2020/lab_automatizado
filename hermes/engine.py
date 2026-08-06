@@ -20,7 +20,14 @@ MODEL_PROVIDER = os.environ.get("HERMES_MODEL_PROVIDER", "openai")
 MODEL_NAME = os.environ.get("HERMES_MODEL_NAME", "gpt-5.1")
 MODEL_BASE_URL = os.environ.get("HERMES_MODEL_BASE_URL", "https://api.openai.com/v1").rstrip("/")
 MODEL_API_KEY = os.environ.get("HERMES_MODEL_API_KEY", "")
-REASONING_EFFORT = os.environ.get("HERMES_MODEL_REASONING_EFFORT", "high")
+CONFIGURED_REASONING_EFFORT = os.environ.get("HERMES_MODEL_REASONING_EFFORT", "medium")
+# Proposal cycles are bounded; high reasoning is reserved for the later
+# adversarial-review stage so the model cannot exhaust the response budget.
+REASONING_EFFORT = (
+    CONFIGURED_REASONING_EFFORT
+    if CONFIGURED_REASONING_EFFORT in {"none", "low", "medium"}
+    else "medium"
+)
 CONTEXT_DIR = Path(os.environ.get("HERMES_CONTEXT_DIR", "/srv/labs/projects/lab_automatizado/hermes/context"))
 PROPOSALS_DIR = Path(os.environ.get("HERMES_PROPOSALS_DIR", "/srv/labs/projects/lab_automatizado/hermes/proposals"))
 WORK_DIR = Path(os.environ.get("HERMES_WORK_DIR", "/srv/labs/projects/lab_automatizado/hermes/work"))
@@ -137,7 +144,7 @@ Responda SOMENTE com JSON válido neste formato:
         "model": MODEL_NAME,
         "store": False,
         "reasoning": {"effort": REASONING_EFFORT},
-        "max_output_tokens": 4000,
+        "max_output_tokens": 8000,
         "input": [
             {"role": "system", "content": [{"type": "input_text", "text": system_prompt}]},
             {"role": "user", "content": [{"type": "input_text", "text": user_prompt}]},
@@ -169,13 +176,25 @@ def output_text(response: dict[str, Any]) -> str:
         return direct.strip()
     chunks: list[str] = []
     for item in response.get("output", []):
-        if item.get("type") != "message":
+        if not isinstance(item, dict):
             continue
-        for content in item.get("content", []):
-            if content.get("type") == "output_text" and isinstance(content.get("text"), str):
+        if item.get("type") == "output_text" and isinstance(item.get("text"), str):
+            chunks.append(item["text"])
+        content_items = item.get("content", [])
+        if isinstance(content_items, str):
+            chunks.append(content_items)
+        for content in content_items if isinstance(content_items, list) else []:
+            if isinstance(content, dict) and isinstance(content.get("text"), str):
                 chunks.append(content["text"])
     if not chunks:
-        raise RuntimeError("Model response did not contain output text")
+        output_types = [
+            item.get("type") for item in response.get("output", []) if isinstance(item, dict)
+        ]
+        raise RuntimeError(
+            "Model response did not contain output text "
+            f"(status={response.get('status')}, output_types={output_types}, "
+            f"incomplete={response.get('incomplete_details')})"
+        )
     return "\n".join(chunks).strip()
 
 
@@ -289,7 +308,11 @@ def main() -> int:
     signal.signal(signal.SIGINT, stop)
     if MODEL_PROVIDER != "openai" or not MODEL_API_KEY:
         raise SystemExit("OpenAI provider and HERMES_MODEL_API_KEY are required")
-    print(f"Hermes engine started in proposal mode with {MODEL_NAME}", flush=True)
+    print(
+        f"Hermes engine started in proposal mode with {MODEL_NAME} "
+        f"(reasoning={REASONING_EFFORT})",
+        flush=True,
+    )
     while _running:
         try:
             created = generate_once()
