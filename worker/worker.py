@@ -233,11 +233,14 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
         if not isinstance(partial, dict) or not (0 < float(partial.get("fraction", 0.5)) < 1):
             return "failed", "Fração de saída parcial inválida."
 
-        run_root = Path(f"/srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}")
-        run_root.mkdir(parents=True, exist_ok=True)
-        (run_root / "config.json").write_text(
-            json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8"
-        )
+        try:
+            run_root = Path(f"/srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}")
+            run_root.mkdir(parents=True, exist_ok=True)
+            (run_root / "config.json").write_text(
+                json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8"
+            )
+        except OSError as exc:
+            return "failed", f"Não foi possível preparar a pasta do run: {exc}"
 
     try:
         completed = subprocess.run(
