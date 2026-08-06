@@ -2,7 +2,10 @@ PRAGMA threads=1;
 PRAGMA memory_limit='1500MB';
 PRAGMA preserve_insertion_order=false;
 PRAGMA temp_directory='/tmp';
-PRAGMA max_temp_directory_size='20GB';
+-- A varredura do snapshot completo pode precisar de mais de 20 GB de
+-- temporario. O limite fica abaixo do espaco livre observado na VPS e o
+-- wrapper garante que apenas um backtest ocupe esse espaco por vez.
+PRAGMA max_temp_directory_size='60GB';
 PRAGMA enable_progress_bar=false;
 
 CREATE OR REPLACE TEMP TABLE config AS
