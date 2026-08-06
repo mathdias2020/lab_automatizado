@@ -20,6 +20,12 @@ DATASET = Path(
     )
 )
 HEARTBEAT_SECONDS = float(os.environ.get("HERMES_HEARTBEAT_SECONDS", "15"))
+ENGINE_STATUS_FILE = Path(
+    os.environ.get(
+        "HERMES_ENGINE_STATUS_FILE",
+        "/srv/labs/projects/lab_automatizado/hermes/work/engine-status.json",
+    )
+)
 
 _running = True
 
@@ -47,23 +53,44 @@ def dataset_metadata() -> dict[str, object]:
     }
 
 
+def engine_status() -> tuple[str, str, list[str], dict[str, object]]:
+    default = ("observing", "observation", ["read_development_data", "heartbeat_only"], {})
+    try:
+        if not ENGINE_STATUS_FILE.is_file() or time.time() - ENGINE_STATUS_FILE.stat().st_mtime > 120:
+            return default
+        payload = json.loads(ENGINE_STATUS_FILE.read_text(encoding="utf-8"))
+        status = payload.get("status")
+        mode = payload.get("mode")
+        capabilities = payload.get("capabilities")
+        metadata = payload.get("metadata")
+        if status not in {"observing", "proposing"} or mode not in {"observation", "proposal"}:
+            return default
+        if not isinstance(capabilities, list) or not isinstance(metadata, dict):
+            return default
+        return status, mode, [str(item) for item in capabilities], metadata
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return default
+
+
 def heartbeat_payload() -> dict[str, object]:
+    status, mode, capabilities, engine_metadata = engine_status()
     return {
         "kind": "hermes_heartbeat",
         "agent_key": AGENT_KEY,
-        "status": "observing",
-        "mode": "observation",
+        "status": status,
+        "mode": mode,
         "version": VERSION,
-        "capabilities": ["read_development_data", "heartbeat_only"],
+        "capabilities": capabilities,
         "metadata": {
             "runtime": "hermes-runtime",
             "execution_enabled": False,
-            "hypothesis_generation_enabled": False,
+            "hypothesis_generation_enabled": status == "proposing",
             "service_role_access": False,
             "docker_socket_access": False,
             "network_access": False,
             "pid": os.getpid(),
             "observed_at": utc_now(),
+            **engine_metadata,
             **dataset_metadata(),
         },
     }

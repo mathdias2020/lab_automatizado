@@ -22,7 +22,7 @@ ProtectControlGroups=true
 RestrictSUIDSGID=true
 CapabilityBoundingSet=CAP_DAC_READ_SEARCH
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-ReadOnlyPaths=/srv/labs/projects/lab_automatizado/hermes/outbox
+ReadOnlyPaths=/srv/labs/projects/lab_automatizado/hermes/outbox /srv/labs/projects/lab_automatizado/hermes/proposals
 ReadWritePaths=/srv/labs/projects/lab_automatizado/hermes/logs
 
 [Install]
