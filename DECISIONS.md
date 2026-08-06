@@ -34,6 +34,24 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** validar o ciclo científico completo antes de permitir descoberta autônoma ou simulação operacional.
 - **Impacto:** os dois runs concluíram com artefatos e hashes, sem acessar 2025+/holdout; a amostra parcial não sustenta promoção e deve ser expandida antes de novos ajustes.
 
+## D-027 — Objetivo por contrato e portfólio por ativo
+
+- **Data:** 2026-08-06
+- **Status:** vigente; substitui D-003 e D-010
+- **Decisão:** remover do objetivo do projeto o capital de referência de R$ 1 milhão, o limite de perda de R$ 100 mil e o retorno percentual sobre capital. Cada ativo terá um portfólio independente, buscando média de R$ 1.000 por contrato operado por mês. A referência por operação será WDO 10 contratos e WIN 50 contratos.
+- **Critério de aceitação:** a média de longo prazo é a métrica principal. A faixa mensal inicial de monitoramento é R$ 700–R$ 1.300 por contrato; um mês abaixo da faixa gera diagnóstico e não invalida o portfólio. Resultado bruto será reportado para pesquisa; resultado líquido após custos e slippage é obrigatório para promoção operacional.
+- **Motivo:** medir a qualidade econômica do portfólio por unidade operacional, sem amarrar a pesquisa a um capital arbitrário nem reagir de forma excessiva a um único mês.
+- **Impacto:** WDO e WIN não se compensam. O PnL escalado usa contratos efetivamente executados; a referência 10/50 não oculta liquidez, correlação, exposição simultânea ou capacidade.
+
+## D-028 — Hermes como sistema adaptativo de pesquisa
+
+- **Data:** 2026-08-06
+- **Status:** vigente no desenho V1; implementação ainda pendente
+- **Decisão:** o Hermes terá acesso de leitura aos dados brutos de desenvolvimento e poderá explorar, explicar falhas, propor hipóteses e sugerir variantes de entrada e saída. Hipóteses serão formalizadas, revisadas adversarialmente e executadas por um avaliador determinístico. Break-even, trailing stop, saída parcial, time stop e encerramento de sessão entram como políticas de saída versionadas e limitadas.
+- **Restrições:** memória do Hermes não é fonte científica; o holdout fica protegido; o agente não altera métricas, splits, executor, dados brutos ou critérios de promoção e não recebe acesso a ordens, ProfitDLL, Docker socket, sudo ou `service_role`.
+- **Motivo:** usar a capacidade de exploração e interpretação do agente sem permitir que ele selecione o próprio gabarito ou transforme uma narrativa pós-resultado em evidência.
+- **Impacto:** o próximo entregável é o contrato do sistema Hermes, com registry de hipóteses, orçamento de experimentos, revisão adversarial, métricas do agente e ferramentas allowlisted.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05
@@ -74,11 +92,11 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** evitar que a infraestrutura defina prematuramente o desenho do projeto.
 - **Impacto:** a primeira entrega deste projeto é documental e metodológica; a VPS virá depois do inventário dos dados.
 
-## D-003 — Objetivo financeiro e limite de parada
+## D-003 — Objetivo financeiro e limite de parada — decisão histórica
 
 - **Data:** 2026-08-04
-- **Status:** vigente
-- **Decisão:** capital de referência de R$ 1 milhão, perda máxima de 10% e objetivo de 25% bruto.
+- **Status:** superada por D-027
+- **Decisão histórica:** capital de referência de R$ 1 milhão, perda máxima de 10% e objetivo de 25% bruto. Esta formulação não é mais usada no objetivo, no sizing ou nos gates do projeto.
 - **Motivo:** estabelecer o que o sistema precisa proteger e o que se deseja alcançar.
 - **Impacto:** o limite de perda será uma barreira de desligamento; o retorno não será usado sozinho para promover estratégias.
 
@@ -124,11 +142,11 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Decisão:** séries contínuas ajustadas são a representação principal da pesquisa; detalhes de contratos individuais serão tratados como robustez operacional futura, quando aplicável.
 - **Motivo:** manter o protocolo alinhado aos dados históricos disponíveis sem inventar granularidade ausente.
 
-## D-010 — Contratos por operação
+## D-010 — Contratos por operação — decisão histórica
 
 - **Data:** 2026-08-04
-- **Status:** vigente para a fase futura
-- **Decisão:** por cada R$ 100 mil e por operação: WDO 5/10/20; WIN 10/20/40 contratos, respectivamente mínimo/padrão/máximo.
+- **Status:** superada por D-027
+- **Decisão histórica:** por cada R$ 100 mil e por operação: WDO 5/10/20; WIN 10/20/40 contratos, respectivamente mínimo/padrão/máximo. Esta regra foi substituída pela base independente de capital de WDO 10 e WIN 50 em D-027.
 - **Motivo:** o WIN utiliza o dobro da quantidade definida para o WDO.
 - **Impacto:** duas operações simultâneas conservam sizing independente; a camada global continua monitorando risco agregado.
 

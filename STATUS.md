@@ -1,18 +1,20 @@
 # Status do projeto
 
 **Data:** 2026-08-06
-**Fase:** 2 — primeiro experimento de pesquisa reproduzível
+**Fase:** 3 — objetivo de portfólio e contrato do sistema Hermes
 **Estado:** contrato canônico v1 validado em amostra ampliada; dataset completo ainda bloqueado  
 **Última decisão:** o projeto usa o ID lab_automatizado e os Parquets originais permanecem imutáveis.
 
 ## Concluído
 
 - [x] Escopo inicial separado da execução com ProfitDLL.
-- [x] Capital, limite de perda e objetivo de retorno registrados.
+- [x] Objetivo por contrato e portfólio por ativo registrado; o enquadramento por capital foi removido.
+- [x] Documento do objetivo de portfólio criado em `docs/PORTFOLIO_OBJECTIVE_V1.md`.
+- [x] Desenho do sistema Hermes criado em `docs/HERMES_RESEARCH_SYSTEM_V1.md`.
 - [x] Objetivo de frequência tratado como média, não quota.
 - [x] WDO e WIN definidos como validações separadas.
 - [x] Holdout e divisão de dados definidos conceitualmente.
-- [x] Regra de contratos futura registrada por operação.
+- [x] Base futura registrada por operação: WDO 10 e WIN 50 contratos.
 - [x] Arquivos canônicos iniciais criados.
 - [x] VPS Hostinger confirmada com Ubuntu 24.04.4 e Docker.
 - [x] Acesso SSH por chave validado com labadmin.
@@ -105,10 +107,12 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
-2. repetir o estudo de absorção congelado com controles nulos pré-registrados;
-3. revisar o relatório antes de abrir novas hipóteses ou simulação de estratégia;
-4. manter a execução por fila/partição na KVM2.
+1. revisar e congelar os dois contratos V1 com o primeiro ciclo de pesquisa;
+2. criar o registry de hipóteses, revisões, políticas de saída e ações do Hermes;
+3. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
+4. habilitar o Hermes primeiro em modo somente leitura/proposta e depois em execução allowlisted;
+5. implementar políticas de saída versionadas: break-even, trailing, parcial, time stop e encerramento de sessão;
+6. manter a execução por fila/partição na KVM2.
 
 ## Fora do escopo atual
 

@@ -1,10 +1,10 @@
 # Laboratório de Estratégias IA — Contexto do Projeto
 
-**Status:** Fase 1 — amostra transferida e camada canônica inicial validada  
-**Data de referência:** 2026-08-05  
+**Status:** Fase 3 — objetivo de portfólio e desenho do sistema Hermes
+**Data de referência:** 2026-08-06
 **Nome do laboratório:** Laboratório Automatizado  
 **ID técnico:** lab_automatizado  
-**Fonte de verdade:** este arquivo, [DECISIONS.md](DECISIONS.md), [STATUS.md](STATUS.md) e [docs/VALIDATION_PROTOCOL.md](docs/VALIDATION_PROTOCOL.md).
+**Fonte de verdade:** este arquivo, [DECISIONS.md](DECISIONS.md), [STATUS.md](STATUS.md), [docs/PORTFOLIO_OBJECTIVE_V1.md](docs/PORTFOLIO_OBJECTIVE_V1.md), [docs/HERMES_RESEARCH_SYSTEM_V1.md](docs/HERMES_RESEARCH_SYSTEM_V1.md) e [docs/VALIDATION_PROTOCOL.md](docs/VALIDATION_PROTOCOL.md).
 
 ## Objetivo
 
@@ -38,33 +38,36 @@ Não inclui:
 
 ## Decisões já estabelecidas
 
-- Capital de referência do projeto: R$ 1.000.000.
-- Perda máxima tolerada antes de desligar e reavaliar: 10% do capital, ou R$ 100.000.
-- Retorno desejado: 25% bruto sobre o capital total; é objetivo de portfólio, não um filtro isolado de promoção.
+- O objetivo financeiro não é mais definido por um capital de referência.
+- Cada ativo terá um portfólio independente de estratégias intraday.
+- O alvo central é uma média de R$ 1.000 por contrato operado por mês em cada ativo.
+- A banda mensal inicial de monitoramento é R$ 700–R$ 1.300 por contrato; ela é diagnóstica, não um filtro mensal rígido.
+- O resultado bruto será preservado como métrica de pesquisa, e o resultado líquido após custos, slippage e execução será obrigatório para promoção operacional.
 - Operação exclusivamente intraday.
 - Objetivo de atividade: média de cinco operações por semana somando WDO e WIN; não é uma quota que force entradas ruins.
 - WDO e WIN serão validados separadamente.
 - O resultado final será um portfólio de estratégias independentes.
 - O laboratório pode gerar hipóteses, código e experimentos de forma autônoma dentro de um espaço de busca controlado.
 - A promoção de uma estratégia exige aprovação humana.
+- O Hermes poderá explorar dados de desenvolvimento, propor e criticar hipóteses e iniciar pesquisas permitidas pelo control plane; não terá acesso iterativo ao holdout nem poderá promover estratégias.
 - A descoberta prioriza as variáveis disponíveis nos cinco anos de histórico confiável.
 - Os trinta dias úteis com dados mais ricos de microestrutura serão usados como fonte secundária de hipóteses e testes específicos, não como substituto da validação de longo prazo.
 - A série histórica preferida é contínua e ajustada.
 - O holdout mais recente, aproximadamente doze meses, permanece cego durante a descoberta e a validação.
 - Ausência de cobertura é registrada como `NULL` ou `SEM_COBERTURA_ESTRUTURAL`, nunca como zero ou veredito fabricado.
 
-## Regra de contratos para a fase futura
+## Base de contratos para a fase futura
 
-A quantidade é definida por operação e por faixa de R$ 100.000 de capital operacional:
+A referência de dimensionamento é definida por operação, sem vínculo com um capital fixo:
 
-| Ativo | Mínimo | Padrão | Máximo |
-|---|---:|---:|---:|
-| WDO | 5 | 10 | 20 |
-| WIN | 10 | 20 | 40 |
+| Ativo | Base por operação |
+|---|---:|
+| WDO | 10 |
+| WIN | 50 |
 
 Operações simultâneas mantêm dimensionamento independente. A exposição agregada será observada por uma camada global de risco, mas não altera silenciosamente a quantidade definida para cada operação.
 
-Essa regra é uma política de dimensionamento; não substitui o cálculo de risco em reais, custos, slippage, drawdown e correlação entre estratégias.
+Essa referência não é um filtro de pesquisa nem substitui a análise de liquidez, custos, slippage, drawdown, correlação e exposição agregada. O PnL do portfólio será normalizado por contratos efetivamente executados.
 
 ## Arquitetura pretendida
 
@@ -84,6 +87,21 @@ Supabase gerenciado: metadados, estados, auditoria e controle
 Hostinger Linux: agentes, jobs, Parquet e processamento
 VPS Windows separada: ProfitDLL e execução futura
 ```
+
+### Sistema de pesquisa com Hermes
+
+```text
+Hermes explora dados de desenvolvimento em leitura
+    -> formaliza uma hipótese versionada
+    -> revisão adversarial
+    -> executor determinístico
+    -> métricas brutas/líquidas e artefatos
+    -> Hermes escolhe a próxima pesquisa
+```
+
+O contrato detalhado está em `docs/HERMES_RESEARCH_SYSTEM_V1.md`. O Hermes é
+autônomo na descoberta e na análise, mas o holdout, o executor de avaliação e
+a promoção permanecem independentes.
 
 O Supabase não será usado inicialmente como depósito de todos os ticks. Os dados pesados permanecem em Parquet/DuckDB ou armazenamento de objetos; o banco registra manifestos, hashes, resultados e estados.
 
