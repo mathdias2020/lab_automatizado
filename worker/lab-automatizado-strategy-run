@@ -12,6 +12,13 @@ test -s "$config" || { echo "config.json ausente" >&2; exit 2; }
 mkdir -p "$base/tmp"
 chown -R labadmin:labadmin "$base"
 
+# DuckDB can use several gigabytes of temporary storage.  Keep strategy
+# backtests serial even if the worker service is restarted while a child
+# runner is still draining, preventing two full scans from exhausting /srv.
+lockfile="/run/lab-automatizado-strategy-backtest.lock"
+exec 9>"$lockfile"
+flock 9
+
 DATA_ROOT=/srv/labs/datasets/raw/full \
 RUN_ROOT="$base" \
 TMP_ROOT="$base/tmp" \
