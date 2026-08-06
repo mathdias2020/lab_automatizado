@@ -107,6 +107,20 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
 .quiet-button:hover { border-color: var(--cyan); color: var(--cyan); }
 .research-actions { display: flex; gap: 8px; margin-top: 12px; }
 .research-note { margin-top: 12px !important; color: var(--text-muted) !important; font-size: 11px !important; }
+.hypotheses-section { margin-top: 58px; }
+.hypothesis-list { display: grid; gap: 8px; }
+.hypothesis-card { padding: 22px 20px; border: 1px solid var(--line); background: rgba(17, 26, 43, 0.75); }
+.hypothesis-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.hypothesis-card h3 { margin: 8px 0 0; color: var(--text); font-size: 17px; font-weight: 600; letter-spacing: -0.03em; }
+.hypothesis-summary { max-width: 760px; margin: 14px 0 0; color: var(--text-soft); font-size: 13px; line-height: 1.55; }
+.hypothesis-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; color: var(--text-muted); font-family: monospace; font-size: 10px; }
+.hypothesis-review { display: grid; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.hypothesis-note { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; outline: 0; background: var(--ink-soft); color: var(--text); font: inherit; font-size: 12px; }
+.hypothesis-note:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+.hypothesis-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.hypothesis-approve:hover { border-color: var(--green); color: var(--green); }
+.hypothesis-reject:hover { border-color: var(--red); color: var(--red); }
+.hypothesis-review-note { margin: 18px 0 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
 .run-table { overflow: hidden; }
 .run-row { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(110px, 0.75fr) minmax(150px, 1fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr); align-items: center; gap: 16px; min-height: 66px; padding: 0 20px; border-top: 1px solid var(--line-soft); color: var(--text-soft); font-family: monospace; font-size: 11px; font-variant-numeric: tabular-nums; }
 .run-row-heading { min-height: 42px; border-top: 0; color: var(--text-muted); font-family: "Cascadia Code", "SFMono-Regular", monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -171,6 +185,8 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
   .run-row { min-width: 620px; grid-template-columns: 200px 110px 150px 100px 100px; }
   .run-row > :nth-child(4), .run-row > :nth-child(5), .run-row-heading > :nth-child(4), .run-row-heading > :nth-child(5) { display: block; }
   .page-footer { display: block; line-height: 1.8; }
+  .hypothesis-card-header { display: block; }
+  .hypothesis-card-header > .status { margin-top: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

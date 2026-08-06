@@ -52,6 +52,15 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** usar a capacidade de exploração e interpretação do agente sem permitir que ele selecione o próprio gabarito ou transforme uma narrativa pós-resultado em evidência.
 - **Impacto:** o próximo entregável é o contrato do sistema Hermes, com registry de hipóteses, orçamento de experimentos, revisão adversarial, métricas do agente e ferramentas allowlisted.
 
+## D-029 — Monitoramento Hermes V1 separado da execução
+
+- **Data:** 2026-08-06
+- **Status:** vigente
+- **Decisão:** o painel deste laboratório terá uma integração própria para monitorar o Hermes e revisar hipóteses, usando as tabelas `agents`, `hypotheses` e `agent_events` no schema privado `lab_automatizado`. O estado inicial do agente é `offline`/`disabled`.
+- **Restrições:** a aprovação humana no painel apenas registra `approved_for_test`; ela não inicia um run, não altera o executor e não promove estratégia. O runtime do Hermes será instalado separadamente na área deste laboratório e não compartilhará estado operacional com o outro laboratório.
+- **Motivo:** permitir acompanhar e governar a descoberta desde o início, mantendo a barreira entre inteligência exploratória, avaliação determinística e promoção.
+- **Impacto:** o próximo passo técnico é instalar o runtime isolado, emitir heartbeat e registrar a primeira proposta formal; a execução continua fora do escopo até esse contrato ser validado.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05

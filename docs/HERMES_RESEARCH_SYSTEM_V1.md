@@ -1,7 +1,7 @@
 # Hermes Research System — V1
 
 **Data:** 2026-08-06
-**Status:** desenho vigente; implementação pendente
+**Status:** monitoramento V1 implementado; runtime do Hermes ainda desabilitado
 **Função:** descoberta adaptativa, crítica e priorização de pesquisas
 
 ## 1. Papel do Hermes
@@ -160,3 +160,22 @@ O sistema registrará:
 
 O Hermes será considerado útil se aumentar a qualidade e a velocidade da
 descoberta, não apenas o número de backtests executados.
+
+## 11. Monitoramento V1 no painel
+
+O painel publicado acompanha o registro do Hermes sem conceder execução
+autônoma:
+
+- `agents` registra estado, modo, versão, capacidades e heartbeat;
+- `hypotheses` registra propostas, origem, mecanismo, payload e revisão humana;
+- `agent_events` fica reservado para o diário operacional do agente;
+- o estado inicial é `offline`/`disabled`;
+- uma aprovação no painel apenas muda a hipótese para `approved_for_test`; ela
+  não inicia um run nem promove uma estratégia;
+- as APIs usam sessão do Supabase Auth e chamam RPCs server-side com
+  `service_role`; as tabelas permanecem privadas e sem grants para o navegador.
+
+O próximo incremento é instalar o runtime isolado do Hermes na área deste
+laboratório, emitir heartbeat e registrar propostas em `hypotheses`. O runtime
+deve iniciar em modo `observation` ou `proposal`; qualquer execução deverá
+continuar limitada ao control plane e depender de aprovação humana.

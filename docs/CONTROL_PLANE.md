@@ -68,3 +68,24 @@ O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.ve
 - o worker aceita somente `absorption_event_study_v1` dentro de `research`; a configuração é transportada no payload e validada antes de iniciar o runner.
 
 O primeiro usuário foi criado e o fluxo foi validado: login, leitura, enfileiramento pelo painel, execução no worker Docker e finalização `succeeded`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser.
+
+## Registry do Hermes — V1
+
+O monitoramento do Hermes usa objetos separados dentro do mesmo schema privado
+do laboratório:
+
+| Objeto | Finalidade |
+|---|---|
+| `agents` | identidade, estado, modo, capacidades e heartbeat do agente |
+| `hypotheses` | propostas formais e estado da revisão humana |
+| `agent_events` | eventos e mensagens operacionais do agente |
+
+As funções RPC específicas são `lab_automatizado_list_agents`,
+`lab_automatizado_list_hypotheses`, `lab_automatizado_review_hypothesis`,
+`lab_automatizado_heartbeat_agent` e `lab_automatizado_record_hypothesis`.
+Todas exigem `service_role`; não há leitura direta das tabelas pelo navegador.
+
+O painel mostra o Hermes como `offline` e `disabled` até que o runtime seja
+instalado e passe a emitir heartbeat. A revisão humana no painel não dispara
+execução: `approved_for_test` é apenas uma autorização para uma etapa futura do
+control plane.

@@ -1,7 +1,7 @@
 # Status do projeto
 
 **Data:** 2026-08-06
-**Fase:** 3 — objetivo de portfólio e contrato do sistema Hermes
+**Fase:** 4 — monitoramento Hermes V1 e preparação do runtime
 **Estado:** contrato canônico v1 validado em amostra ampliada; dataset completo ainda bloqueado  
 **Última decisão:** o projeto usa o ID lab_automatizado e os Parquets originais permanecem imutáveis.
 
@@ -90,6 +90,17 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Deployment Protection SSO da Vercel desativado; o limite de acesso agora é o Supabase Auth do painel.
 - [x] Fluxo ponta a ponta validado: login → API autenticada → enqueue → worker Docker → `succeeded`.
 
+## Monitoramento Hermes V1 — 2026-08-06
+
+- [x] Registry privado de agentes, hipóteses e eventos aplicado no Supabase.
+- [x] RPCs do Hermes restritas a `service_role`.
+- [x] Estado inicial `hermes-supervisor = offline/disabled` registrado.
+- [x] APIs server-side de leitura e revisão humana adicionadas ao painel.
+- [x] Cards de estado, heartbeat, hipóteses vazias e revisão adicionados à UI.
+- [x] Painel publicado em produção com o monitoramento Hermes V1.
+- [x] Aprovação humana não dispara run nem promoção automática.
+- [ ] Runtime do Hermes instalado e emitindo heartbeat.
+
 ## Primeiro experimento de pesquisa — 2026-08-06
 
 - [x] Contrato `absorption_event_study_v1` congelado no repositório.
@@ -107,10 +118,10 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. revisar e congelar os dois contratos V1 com o primeiro ciclo de pesquisa;
-2. criar o registry de hipóteses, revisões, políticas de saída e ações do Hermes;
+1. instalar o runtime isolado do Hermes na área deste laboratório e emitir heartbeat;
+2. implementar o primeiro ciclo de observação → proposta formal → revisão adversarial;
 3. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
-4. habilitar o Hermes primeiro em modo somente leitura/proposta e depois em execução allowlisted;
+4. conectar hipóteses aprovadas a runs allowlisted, sem promoção automática;
 5. implementar políticas de saída versionadas: break-even, trailing, parcial, time stop e encerramento de sessão;
 6. manter a execução por fila/partição na KVM2.
 
