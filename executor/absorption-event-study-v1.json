@@ -1,0 +1,20 @@
+{
+  "experiment_id": "absorption_event_study_v1",
+  "version": "1.0.0",
+  "asset": "ASSET_FILLED_BY_RUNNER",
+  "train_start": "2012-04-01T00:00:00",
+  "train_end_exclusive": "2024-01-01T00:00:00",
+  "validation_start": "2024-01-01T00:00:00",
+  "validation_end_exclusive": "2024-02-01T00:00:00",
+  "aggression_quantile": 0.95,
+  "absorption_move_quantile": 0.25,
+  "horizons_minutes": "1,5,15",
+  "trade_types": "AggressorBuyer,AggressorSeller",
+  "evidence_level": "predictive_event_study_pilot",
+  "costs_applied": false,
+  "trading_simulation": false,
+  "holdout_accessed": false,
+  "holdout_policy": "2025+ excluded by date and source-file filters",
+  "input_manifest": "expanded-sample-v1-manifest.json",
+  "source_timezone": "America/Sao_Paulo"
+}

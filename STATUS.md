@@ -1,7 +1,7 @@
 # Status do projeto
 
-**Data:** 2026-08-05  
-**Fase:** 1 — baseline remoto e contrato de dados  
+**Data:** 2026-08-06
+**Fase:** 2 — primeiro experimento de pesquisa reproduzível
 **Estado:** contrato canônico v1 validado em amostra ampliada; dataset completo ainda bloqueado  
 **Última decisão:** o projeto usa o ID lab_automatizado e os Parquets originais permanecem imutáveis.
 
@@ -88,16 +88,27 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Deployment Protection SSO da Vercel desativado; o limite de acesso agora é o Supabase Auth do painel.
 - [x] Fluxo ponta a ponta validado: login → API autenticada → enqueue → worker Docker → `succeeded`.
 
+## Primeiro experimento de pesquisa — 2026-08-06
+
+- [x] Contrato `absorption_event_study_v1` congelado no repositório.
+- [x] Execução separada para WDO e WIN, com thresholds calculados somente no treino.
+- [x] Horizontes de 1, 5 e 15 minutos e baselines de agressão registrados.
+- [x] Holdout 2025+ excluído; `holdout_accessed=false` nos dois runs.
+- [x] Runs WDO `b27db3b4-c061-410b-bf3e-ab0024457a5c` e WIN `4ceaa057-b0f8-4ece-ad03-893fe90e58f0` concluídos com artefatos e hashes.
+- [!] Resultado ainda é piloto: amostra histórica parcial, sem custos, slippage, PnL ou promoção.
+
+Relatório: `docs/ABSORPTION_EVENT_STUDY_V1.md`.
+
 Relatório: `outputs/quality-expanded-v1-run-2026-08-05.md`.
 
 Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. definir a primeira métrica/feature de pesquisa semântica, separadamente para WDO e WIN;
-2. criar um experimento baseline com `run_id`, configuração e custos explícitos;
-3. manter a execução por fila/partição na KVM2;
-4. só depois iniciar descoberta de hipóteses por agentes.
+1. materializar e auditar o snapshot completo de desenvolvimento sem holdout;
+2. repetir o estudo de absorção congelado com controles nulos pré-registrados;
+3. revisar o relatório antes de abrir novas hipóteses ou simulação de estratégia;
+4. manter a execução por fila/partição na KVM2.
 
 ## Fora do escopo atual
 

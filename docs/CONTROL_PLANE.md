@@ -56,7 +56,7 @@ O teste inicial executou um único `quality_benchmark` pelo worker automático. 
 
 ## Painel
 
-O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.vercel.app](https://lab-automatizado-panel.vercel.app/). Ele oferece a visão de execuções e o comando de enfileirar `quality_benchmark`.
+O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.vercel.app](https://lab-automatizado-panel.vercel.app/). Ele oferece a visão de execuções e os comandos de enfileirar `quality_benchmark` ou `absorption_event_study_v1` com WDO e WIN separados.
 
 - o `service_role` só é lido em rotas server-side;
 - o navegador usa `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` e envia o bearer token da sessão;
@@ -65,5 +65,6 @@ O painel inicial está em `panel/` e foi publicado em [lab-automatizado-panel.ve
 - `PANEL_ALLOWED_EMAILS` está configurado para restringir este painel ao usuário autorizado deste laboratório;
 - o SSO de Deployment Protection da Vercel foi desativado para não interpor uma segunda autenticação antes da sessão do Supabase; o acesso continua protegido por Supabase Auth e pela allowlist server-side;
 - a interface não deve permitir `research` arbitrário antes de existir um executor aprovado para esse tipo.
+- o worker aceita somente `absorption_event_study_v1` dentro de `research`; a configuração é transportada no payload e validada antes de iniciar o runner.
 
 O primeiro usuário foi criado e o fluxo foi validado: login, leitura, enfileiramento pelo painel, execução no worker Docker e finalização `succeeded`. O painel ainda não cria contas, não envia convites e não deve receber a `service_role` no browser.

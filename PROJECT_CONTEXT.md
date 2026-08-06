@@ -155,7 +155,9 @@ O executor mínimo está em `/srv/labs/projects/lab_automatizado/executor`, com 
 
 O schema privado `lab_automatizado` no Supabase abriga o estado de runs, commands, events, artifacts e workers. O worker da VPS usa `/etc/lab-automatizado/worker.env`; a chave privilegiada não entra no Git.
 
-O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas server-side validam a sessão e chamam as RPCs com `SUPABASE_SERVICE_ROLE_KEY`. O deploy está no projeto Vercel `lab-automatizado-panel`, com produção em `https://lab-automatizado-panel.vercel.app/`. O primeiro usuário ainda precisa ser criado em `Authentication → Users`; a allowlist opcional é `PANEL_ALLOWED_EMAILS`.
+O painel Next.js está em `panel/` e usa Supabase Auth no navegador. As rotas server-side validam a sessão e chamam as RPCs com `SUPABASE_SERVICE_ROLE_KEY`. O deploy está no projeto Vercel `lab-automatizado-panel`, com produção em `https://lab-automatizado-panel.vercel.app/`. O acesso está restrito por Supabase Auth e `PANEL_ALLOWED_EMAILS`. O painel permite iniciar o quality benchmark e o estudo `absorption_event_study_v1` separadamente para WDO e WIN.
+
+O primeiro estudo de pesquisa foi executado em 2026-08-06 sobre a amostra histórica parcial. Os resultados e limites estão em `docs/ABSORPTION_EVENT_STUDY_V1.md`; eles não autorizam promoção nem operação.
 
 ## Regra de atualização do contexto
 

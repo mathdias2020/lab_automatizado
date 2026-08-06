@@ -105,6 +105,8 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
 .section-heading h2 { margin: 8px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.04em; }
 .quiet-button { padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--text-soft); font-size: 11px; transition: border-color 160ms ease-out, color 160ms ease-out; }
 .quiet-button:hover { border-color: var(--cyan); color: var(--cyan); }
+.research-actions { display: flex; gap: 8px; margin-top: 12px; }
+.research-note { margin-top: 12px !important; color: var(--text-muted) !important; font-size: 11px !important; }
 .run-table { overflow: hidden; }
 .run-row { display: grid; grid-template-columns: minmax(220px, 1.6fr) minmax(110px, 0.75fr) minmax(150px, 1fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr); align-items: center; gap: 16px; min-height: 66px; padding: 0 20px; border-top: 1px solid var(--line-soft); color: var(--text-soft); font-family: monospace; font-size: 11px; font-variant-numeric: tabular-nums; }
 .run-row-heading { min-height: 42px; border-top: 0; color: var(--text-muted); font-family: "Cascadia Code", "SFMono-Regular", monospace; font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; }

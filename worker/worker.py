@@ -126,6 +126,7 @@ class Settings:
     heartbeat_seconds: float
     run_timeout_seconds: int
     quality_runner: str
+    research_runner: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -148,21 +149,30 @@ class Settings:
             quality_runner=os.environ.get(
                 "QUALITY_RUNNER", "/usr/local/sbin/lab-automatizado-quality-run"
             ),
+            research_runner=os.environ.get(
+                "RESEARCH_RUNNER", "/usr/local/sbin/lab-automatizado-research-run"
+            ),
         )
 
 
-def register_run_artifacts(gateway: Gateway, settings: Settings, run_id: str) -> int:
+def register_run_artifacts(
+    gateway: Gateway, settings: Settings, run_id: str, artifact_type: str
+) -> int:
     run_root = Path(f"/srv/labs/projects/lab_automatizado/runs/control_plane/{run_id}")
-    files = sorted(run_root.glob("*.csv"))
+    files = sorted(
+        artifact
+        for artifact in run_root.iterdir()
+        if artifact.is_file() and artifact.suffix in {".csv", ".json", ".md"}
+    )
     for artifact in files:
         digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
         gateway.register_artifact(
             run_id=run_id,
             worker_id=settings.worker_id,
-            artifact_type="quality_csv",
+            artifact_type=artifact_type,
             uri=f"vps://{artifact}",
             sha256=digest,
-            metadata={"bytes": artifact.stat().st_size},
+            metadata={"bytes": artifact.stat().st_size, "name": artifact.name},
         )
     return len(files)
 
@@ -176,12 +186,26 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
         return "failed", f"Comando não implementado nesta fase: {command_type}"
 
     payload = command.get("payload") or {}
-    if payload.get("run_type") != "quality_benchmark":
-        return "failed", "Somente quality_benchmark está permitido no worker inicial."
+    run_type = payload.get("run_type")
+    config = payload.get("config") or {}
+    runners = {
+        "quality_benchmark": (settings.quality_runner, "quality_csv"),
+        "research": (settings.research_runner, "research_artifact"),
+    }
+    runner_spec = runners.get(run_type)
+    if runner_spec is None:
+        return "failed", f"Tipo de run nao implementado nesta fase: {run_type}"
+
+    runner, artifact_type = runner_spec
+    if run_type == "research" and config.get("research_id") != "absorption_event_study_v1":
+        return "failed", "Somente absorption_event_study_v1 esta permitido no worker inicial."
+    if run_type == "research" and config.get("asset") not in {"WDOFUT", "WINFUT"}:
+        return "failed", "A pesquisa exige asset WDOFUT ou WINFUT."
 
     try:
         completed = subprocess.run(
-            ["sudo", "-n", settings.quality_runner, run_id],
+            ["sudo", "-n", runner, run_id]
+            + ([str(config["asset"])] if run_type == "research" else []),
             check=False,
             capture_output=True,
             text=True,
@@ -197,7 +221,7 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
         return "failed", f"Runner retornou {completed.returncode}: {stderr[-500:]}"
 
     try:
-        artifact_count = register_run_artifacts(gateway, settings, run_id)
+        artifact_count = register_run_artifacts(gateway, settings, run_id, artifact_type)
     except (GatewayError, OSError) as exc:
         return "failed", f"Benchmark terminou, mas o registro de artefatos falhou: {exc}"
 
@@ -206,7 +230,7 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
 
 def run_loop(settings: Settings, once: bool) -> None:
     gateway = Gateway(settings.supabase_url, settings.service_role_key)
-    capabilities = ["quality_benchmark"]
+    capabilities = ["quality_benchmark", "absorption_event_study_v1"]
     last_heartbeat = 0.0
 
     while True:

@@ -1,0 +1,51 @@
+#!/bin/sh
+set -eu
+
+run_id="${1:-}"
+asset="${2:-}"
+case "$run_id" in
+  ''|*[!a-f0-9-]*)
+    echo "run_id invalido" >&2
+    exit 2
+    ;;
+esac
+case "$asset" in
+  WDOFUT) asset_dir="wdofut" ;;
+  WINFUT) asset_dir="winfut" ;;
+  *) echo "asset invalido" >&2; exit 2 ;;
+esac
+
+base="/srv/labs/projects/lab_automatizado/runs/control_plane/$run_id"
+mkdir -p "$base/tmp"
+chown -R labadmin:labadmin "$base"
+
+cat > "$base/config.json" <<EOF
+{
+  "experiment_id": "absorption_event_study_v1",
+  "version": "1.0.0",
+  "asset": "$asset",
+  "train_start": "2012-04-01T00:00:00",
+  "train_end_exclusive": "2024-01-01T00:00:00",
+  "validation_start": "2024-01-01T00:00:00",
+  "validation_end_exclusive": "2024-02-01T00:00:00",
+  "aggression_quantile": 0.95,
+  "absorption_move_quantile": 0.25,
+  "horizons_minutes": "1,5,15",
+  "trade_types": "AggressorBuyer,AggressorSeller",
+  "evidence_level": "predictive_event_study_pilot",
+  "costs_applied": false,
+  "trading_simulation": false,
+  "holdout_accessed": false,
+  "holdout_policy": "2025+ excluded by date and source-file filters",
+  "input_manifest": "expanded-sample-v1-manifest.json",
+  "source_timezone": "America/Sao_Paulo"
+}
+EOF
+
+DATA_ROOT=/srv/labs/datasets/canonical/expanded_sample_v1/normalized \
+RUN_ROOT="$base" \
+TMP_ROOT="$base/tmp" \
+CONFIG_FILE="$base/config.json" \
+/usr/bin/docker compose \
+  -f /srv/labs/projects/lab_automatizado/executor/compose.yaml \
+  run --rm absorption-event-study

@@ -26,6 +26,14 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Motivo:** evitar uma segunda conta/proteção da Vercel bloqueando as rotas antes da autenticação do painel, sem deixar o gateway exposto a usuários anônimos.
 - **Impacto:** login, API autenticada, enqueue, worker Docker e finalização `succeeded` foram validados ponta a ponta; credenciais não são armazenadas no repositório nem nos logs.
 
+## D-026 — Primeiro estudo de absorção como event study
+
+- **Data:** 2026-08-06
+- **Status:** vigente para o piloto; sem promoção
+- **Decisão:** o primeiro executor de pesquisa testa `absorption_event_study_v1` em runs independentes de WDO e WIN, usando agressão extrema mais movimento contemporâneo pequeno, com horizontes de 1/5/15 minutos e baselines explícitos.
+- **Motivo:** validar o ciclo científico completo antes de permitir descoberta autônoma ou simulação operacional.
+- **Impacto:** os dois runs concluíram com artefatos e hashes, sem acessar 2025+/holdout; a amostra parcial não sustenta promoção e deve ser expandida antes de novos ajustes.
+
 ## D-015 — Control plane privado e worker sem Docker socket
 
 - **Data:** 2026-08-05
