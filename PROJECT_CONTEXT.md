@@ -120,7 +120,7 @@ A VPS Hostinger 1556867 está configurada como worker Linux para os laboratório
 - UFW ativo, com entrada liberada somente para SSH;
 - swap de 2 GB configurado;
 - worker systemd do Laboratório Automatizado ativo e habilitado no boot; os containers do executor continuam sendo efêmeros;
-- O dataset completo ainda não foi transferido; somente a amostra de validação foi copiada.
+- O dataset completo foi transferido e fechado como snapshot bruto; a amostra de validação continua preservada.
 - A camada derivada `normalized_sample_v1` foi criada e validada na VPS em `/srv/labs/datasets/canonical/normalized_sample_v1`.
 
 Estrutura inicial no servidor:
@@ -155,8 +155,9 @@ O inventário de 2026-08-05 encontrou:
 - schema recente nos meses 2026-04, 2026-05 e 2026-06, com ts, quantity, volume, IDs numéricos de agentes e is_edit;
 - schema histórico nos demais meses, com date, time, qty, vol, nomes textuais de agentes e aft.
 
-O dataset completo será transferido para `raw/full` como fonte global e somente
-leitura. O executor v2 fará leitura direta dos dois schemas com `union_by_name`,
+O dataset completo foi promovido para `raw/full` como fonte global e somente
+leitura. A transferência fechou em 341 arquivos e 76.586.834.396 bytes, igual à
+origem. O executor v2 fará leitura direta dos dois schemas com `union_by_name`,
 sem materializar uma camada derivada completa na KVM2 antes de medir a carga.
 
 A amostra transferida em 2026-08-05 contém 100.000 negócios de cada combinação de ativo e schema:

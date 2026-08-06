@@ -2,7 +2,7 @@
 
 **Data:** 2026-08-06
 **Fase:** 5 — executor determinístico bruto e fila Hermes
-**Estado:** contrato executável v2 implementado localmente; migração, publicação e sincronização integral em andamento
+**Estado:** contrato executável v2 publicado; snapshot integral fechado; aguardando aprovação humana para o primeiro backtest real
 **Última decisão:** o objetivo é R$ 1.000 bruto por contrato/mês por ativo; custos e slippage ficam desativados nesta fase.
 
 ## Concluído
@@ -28,6 +28,14 @@
 - [x] Amostra com quatro combinações de ativo/schema transferida para a VPS.
 - [x] SHA-256 da amostra conferido na origem e no destino.
 - [x] Amostra remota marcada como somente leitura.
+
+## Snapshot integral na VPS — 2026-08-06
+
+- [x] 341 Parquets sincronizados para `/srv/labs/datasets/raw/full`.
+- [x] WDOFUT: 170 arquivos; WINFUT: 171 arquivos.
+- [x] Total remoto conferido: 76.586.834.396 bytes, igual à origem local.
+- [x] Dataset bruto fechado como `root:root`, diretórios `0555` e arquivos `0444`.
+- [x] Nenhuma camada normalizada integral foi criada; a KVM2 preserva espaço para os runs.
 
 ## Validação do container mínimo — 2026-08-05
 
@@ -114,7 +122,7 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Horizontes de 1, 5 e 15 minutos e baselines de agressão registrados.
 - [x] Holdout 2025+ excluído; `holdout_accessed=false` nos dois runs.
 - [x] Runs WDO `b27db3b4-c061-410b-bf3e-ab0024457a5c` e WIN `4ceaa057-b0f8-4ece-ad03-893fe90e58f0` concluídos com artefatos e hashes.
-- [!] Resultado ainda é piloto: amostra histórica parcial, sem custos, slippage, PnL ou promoção.
+- [!] Resultado ainda é piloto: amostra histórica parcial, sem promoção; o contrato bruto mantém custos/slippage desativados por decisão.
 
 Relatório: `docs/ABSORPTION_EVENT_STUDY_V1.md`.
 
@@ -128,8 +136,8 @@ Relatório: `docs/ABSORPTION_EVENT_STUDY_V1.md`.
 - [x] UI com thread, objeção, pergunta, resposta pendente e gate separado de aprovação implementada.
 - [x] Engine Hermes preparado para responder mensagens por inbox/outbox sem receber `service_role`.
 - [x] Bridge Hermes preparada para entregar e validar respostas por RPC.
-- [ ] Publicar estes arquivos na VPS e reiniciar `hermes-bridge.service`/`hermes-engine.service`.
-- [ ] Publicar o painel no Vercel e validar a conversa com uma hipótese real.
+- [x] Publicar estes arquivos na VPS e reiniciar `hermes-bridge.service`/`hermes-engine.service`.
+- [x] Publicar o painel no Vercel e validar a tela autenticada em produção.
 
 Relatório: `outputs/quality-expanded-v1-run-2026-08-05.md`.
 
@@ -137,11 +145,11 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. aplicar e verificar a migração `hermes_execution_v2` no Supabase;
-2. publicar worker, Hermes, executor e painel na VPS/Vercel;
-3. sincronizar os 341 Parquets para `raw/full` e conferir contagem/tamanho;
-4. revisar as propostas no painel; a aprovação deve enfileirar o backtest bruto;
-5. acompanhar o primeiro `strategy_backtest` e validar seus artefatos;
+1. revisar as propostas no painel e registrar notas humanas;
+2. aprovar somente a hipótese que você quiser testar; a aprovação enfileira o backtest bruto;
+3. acompanhar o primeiro `strategy_backtest` e validar seus artefatos;
+4. comparar os resultados no desenvolvimento até 2022;
+5. congelar candidato, executar validação 2023–2024 e tratar meses-probe pré-registrados;
 6. evoluir a revisão adversarial e o portfólio por ativo antes de qualquer holdout ou promoção.
 
 ## Fora do escopo atual
