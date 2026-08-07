@@ -38,14 +38,17 @@ SELECT
   CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
        ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
   END AS event_ts,
-  upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) AS asset,
+  CASE WHEN regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
+       THEN (SELECT asset FROM config)
+       ELSE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) END AS asset,
   CAST(price AS DOUBLE) AS price,
   abs(CAST(COALESCE(quantity, qty) AS DOUBLE)) AS quantity,
   CAST(trade_type AS VARCHAR) AS trade_type_raw,
   CAST(trade_number AS BIGINT) AS trade_number,
   filename AS source_file
 FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
-WHERE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config)
+WHERE (regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
+       OR upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config))
   AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
            ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
       END >= (SELECT data_start_exclusive::TIMESTAMP FROM config)

@@ -10,7 +10,9 @@ SELECT * FROM read_json_auto('/runner/config.json');
 
 CREATE OR REPLACE TEMP TABLE minute_features AS
 SELECT
-  upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) AS asset,
+  CASE WHEN regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
+       THEN (SELECT asset FROM config)
+       ELSE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) END AS asset,
   CAST(
     CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
          ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
@@ -35,7 +37,8 @@ SELECT
   sum(CASE WHEN CAST(trade_type AS VARCHAR) = 'AggressorBuyer' THEN abs(CAST(COALESCE(quantity, qty) AS DOUBLE))
            WHEN CAST(trade_type AS VARCHAR) = 'AggressorSeller' THEN -abs(CAST(COALESCE(quantity, qty) AS DOUBLE)) ELSE 0 END) AS signed_aggression_qty
 FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
-WHERE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config)
+WHERE (regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
+       OR upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config))
   AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
            ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
       END >= (SELECT train_start::TIMESTAMP FROM config)
