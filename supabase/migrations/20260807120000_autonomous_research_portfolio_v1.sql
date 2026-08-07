@@ -263,7 +263,7 @@ begin
         foreach v_target in array array[20, 40, 60, 80] loop
           foreach v_time_stop in array array[5, 15, 30] loop
             v_index := v_index + 1;
-            if v_index < v_start_index or v_index > v_control.max_variants_per_hypothesis then
+            if v_index < v_start_index or v_index >= v_control.max_variants_per_hypothesis then
               continue;
             end if;
 

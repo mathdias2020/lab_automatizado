@@ -286,3 +286,11 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Decisão:** a amostra pode ser lida por DuckDB em container temporário, com os Parquets montados em modo somente leitura e com `union_by_name` para a transição inicial entre schemas.
 - **Motivo:** o teste remoto confirmou transporte, permissões, leitura dos quatro arquivos e consolidação de 400.000 linhas sem alterar a fonte.
 - **Impacto:** ainda não está decidido se o laboratório usará leitura direta dos Parquets, uma camada normalizada derivada ou ambos; o dataset completo permanece bloqueado até essa decisão.
+
+## D-023 — Ciclo autônomo com promoção humana
+
+- **Data:** 2026-08-07
+- **Status:** vigente
+- **Decisão:** o botão play autoriza Hermes e o scheduler a preparar e executar backtests brutos de desenvolvimento de forma contínua, com fila persistente de até 500 variantes por hipótese e até 5 gerações. O sistema registra candidatos separados para WDOFUT e WINFUT e mantém no máximo cinco slots de portfólio por ativo como objetivo.
+- **Motivo:** transformar o laboratório em um processo contínuo, retomável após reinicialização e observável no painel, sem transformar evidência de desenvolvimento em promoção automática.
+- **Impacto:** validação fora da amostra, correlação/seleção do portfólio e qualquer operação continuam bloqueadas para aprovação humana; o estado inicial do controle é pausado.
