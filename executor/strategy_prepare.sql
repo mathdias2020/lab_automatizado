@@ -21,8 +21,8 @@ SELECT
   arg_max(CAST(price AS DOUBLE),
     CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
   ) AS close_price,
-  sum(CASE WHEN CAST(trade_type AS VARCHAR) = 'AggressorBuyer' THEN abs(CAST(COALESCE(quantity, qty) AS DOUBLE))
-           WHEN CAST(trade_type AS VARCHAR) = 'AggressorSeller' THEN -abs(CAST(COALESCE(quantity, qty) AS DOUBLE)) ELSE 0 END) AS signed_aggression_qty
+  sum(CASE WHEN CAST(trade_type AS VARCHAR) = 'AggressorBuyer' THEN abs(CAST(qty AS DOUBLE))
+           WHEN CAST(trade_type AS VARCHAR) = 'AggressorSeller' THEN -abs(CAST(qty AS DOUBLE)) ELSE 0 END) AS signed_aggression_qty
 FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
 WHERE (regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
        OR upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config))

@@ -40,7 +40,7 @@ SELECT
        THEN (SELECT asset FROM config)
        ELSE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) END AS asset,
   CAST(price AS DOUBLE) AS price,
-  abs(CAST(COALESCE(quantity, qty) AS DOUBLE)) AS quantity,
+  abs(CAST(qty AS DOUBLE)) AS quantity,
   CAST(trade_type AS VARCHAR) AS trade_type_raw,
   CAST(trade_number AS BIGINT) AS trade_number,
   filename AS source_file
