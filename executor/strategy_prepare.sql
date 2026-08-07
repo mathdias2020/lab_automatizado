@@ -13,38 +13,21 @@ SELECT
   CASE WHEN regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
        THEN (SELECT asset FROM config)
        ELSE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) END AS asset,
-  CAST(
-    CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-         ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-    END AS DATE
-  ) AS session_date,
-  date_trunc(
-    'minute',
-    CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-         ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-    END
-  ) AS minute_ts,
+  CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)::DATE AS session_date,
+  date_trunc('minute', CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)) AS minute_ts,
   arg_min(CAST(price AS DOUBLE),
-    CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-         ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-    END
+    CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
   ) AS open_price,
   arg_max(CAST(price AS DOUBLE),
-    CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-         ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-    END
+    CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
   ) AS close_price,
   sum(CASE WHEN CAST(trade_type AS VARCHAR) = 'AggressorBuyer' THEN abs(CAST(COALESCE(quantity, qty) AS DOUBLE))
            WHEN CAST(trade_type AS VARCHAR) = 'AggressorSeller' THEN -abs(CAST(COALESCE(quantity, qty) AS DOUBLE)) ELSE 0 END) AS signed_aggression_qty
 FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
 WHERE (regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
        OR upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config))
-  AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-           ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END >= (SELECT train_start::TIMESTAMP FROM config)
-  AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-           ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END < (SELECT train_end_exclusive::TIMESTAMP FROM config)
+  AND CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP) >= (SELECT train_start::TIMESTAMP FROM config)
+  AND CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP) < (SELECT train_end_exclusive::TIMESTAMP FROM config)
   AND filename NOT LIKE '%2025%'
   AND filename NOT LIKE '%2026%'
 GROUP BY asset, session_date, minute_ts;

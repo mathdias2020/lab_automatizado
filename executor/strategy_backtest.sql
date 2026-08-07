@@ -35,9 +35,7 @@ FROM config;
 
 CREATE OR REPLACE TEMP TABLE raw_ticks AS
 SELECT
-  CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-       ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-  END AS event_ts,
+  CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP) AS event_ts,
   CASE WHEN regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
        THEN (SELECT asset FROM config)
        ELSE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) END AS asset,
@@ -49,12 +47,8 @@ SELECT
 FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
 WHERE (regexp_extract(filename, 'ticker=([^/\\]+)', 1) = ''
        OR upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config))
-  AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-           ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END >= (SELECT data_start_exclusive::TIMESTAMP FROM config)
-  AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
-           ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END < (SELECT data_end_exclusive::TIMESTAMP FROM config)
+  AND CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP) >= (SELECT data_start_exclusive::TIMESTAMP FROM config)
+  AND CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP) < (SELECT data_end_exclusive::TIMESTAMP FROM config)
   AND source_file NOT LIKE '%2025%'
   AND source_file NOT LIKE '%2026%';
 
