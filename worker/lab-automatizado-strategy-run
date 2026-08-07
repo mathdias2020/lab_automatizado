@@ -23,6 +23,4 @@ DATA_ROOT=/srv/labs/datasets/raw/full \
 RUN_ROOT="$base" \
 TMP_ROOT="$base/tmp" \
 CONFIG_FILE="$config" \
-/usr/bin/docker compose \
-  -f /srv/labs/projects/lab_automatizado/executor/compose.yaml \
-  run --rm strategy-backtest
+exec /usr/bin/python3 /usr/local/lib/lab-automatizado-strategy-monthly-runner.py "$run_id"

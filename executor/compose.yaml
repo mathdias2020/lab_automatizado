@@ -89,3 +89,38 @@ services:
         source: ${CONFIG_FILE}
         target: /runner/config.json
         read_only: true
+      - type: bind
+        source: ${THRESHOLDS_FILE:-/srv/labs/projects/lab_automatizado/runs/control_plane/thresholds.csv}
+        target: /runner/thresholds.csv
+        read_only: true
+
+  strategy-prepare:
+    image: duckdb/duckdb@sha256:69b2f746c2d179c0e8d47914f2cff6a9af863372732822fb84e88047f4f2ebf1
+    working_dir: /tmp
+    command: ["/duckdb", ":memory:", "-batch", "-f", "/runner/strategy_prepare.sql"]
+    network_mode: "none"
+    read_only: true
+    cpus: 1.5
+    mem_limit: 2g
+    pids_limit: 128
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - type: bind
+        source: ${DATA_ROOT}
+        target: /data
+        read_only: true
+      - type: bind
+        source: ${RUN_ROOT}
+        target: /artifacts
+      - type: bind
+        source: ${TMP_ROOT}
+        target: /tmp
+      - type: bind
+        source: ./strategy_prepare.sql
+        target: /runner/strategy_prepare.sql
+        read_only: true
+      - type: bind
+        source: ${CONFIG_FILE}
+        target: /runner/config.json
+        read_only: true

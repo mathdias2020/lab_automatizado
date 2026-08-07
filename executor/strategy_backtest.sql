@@ -5,7 +5,7 @@ PRAGMA temp_directory='/tmp';
 -- A varredura do snapshot completo pode precisar de mais de 20 GB de
 -- temporario. O limite fica abaixo do espaco livre observado na VPS e o
 -- wrapper garante que apenas um backtest ocupe esse espaco por vez.
-PRAGMA max_temp_directory_size='90GB';
+PRAGMA max_temp_directory_size='40GB';
 PRAGMA enable_progress_bar=false;
 
 CREATE OR REPLACE TEMP TABLE config AS
@@ -48,10 +48,10 @@ FROM read_parquet('/data/**/*.parquet', union_by_name=true, filename=true)
 WHERE upper(regexp_extract(filename, 'ticker=([^/\\]+)', 1)) = (SELECT asset FROM config)
   AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
            ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END >= (SELECT train_start::TIMESTAMP FROM config)
+      END >= (SELECT data_start_exclusive::TIMESTAMP FROM config)
   AND CASE WHEN ts IS NOT NULL THEN CAST(ts AS TIMESTAMP)
            ELSE CAST(CAST(date AS VARCHAR) || ' ' || CAST(time AS VARCHAR) AS TIMESTAMP)
-      END < (SELECT evaluation_end_exclusive::TIMESTAMP FROM config)
+      END < (SELECT data_end_exclusive::TIMESTAMP FROM config)
   AND source_file NOT LIKE '%2025%'
   AND source_file NOT LIKE '%2026%';
 
@@ -71,20 +71,8 @@ GROUP BY asset, CAST(event_ts AS DATE), date_trunc('minute', event_ts);
 
 CREATE OR REPLACE TEMP TABLE thresholds AS
 SELECT
-  CASE
-    WHEN (SELECT aggression_quantile FROM execution) <= 0.90 THEN quantile_cont(abs(signed_aggression_qty), 0.90)
-    WHEN (SELECT aggression_quantile FROM execution) <= 0.95 THEN quantile_cont(abs(signed_aggression_qty), 0.95)
-    WHEN (SELECT aggression_quantile FROM execution) <= 0.975 THEN quantile_cont(abs(signed_aggression_qty), 0.975)
-    ELSE quantile_cont(abs(signed_aggression_qty), 0.99)
-  END AS aggression_abs_threshold,
-  CASE
-    WHEN (SELECT absorption_move_quantile FROM execution) <= 0.25 THEN quantile_cont(abs(close_price - open_price), 0.25)
-    WHEN (SELECT absorption_move_quantile FROM execution) <= 0.50 THEN quantile_cont(abs(close_price - open_price), 0.50)
-    WHEN (SELECT absorption_move_quantile FROM execution) <= 0.75 THEN quantile_cont(abs(close_price - open_price), 0.75)
-    ELSE quantile_cont(abs(close_price - open_price), 0.90)
-  END AS absorption_move_abs_threshold
-FROM minute_features
-WHERE minute_ts < (SELECT train_end_exclusive::TIMESTAMP FROM config);
+  CAST((SELECT aggression_abs_threshold FROM read_csv_auto('/runner/thresholds.csv')) AS DOUBLE) AS aggression_abs_threshold,
+  CAST((SELECT absorption_move_abs_threshold FROM read_csv_auto('/runner/thresholds.csv')) AS DOUBLE) AS absorption_move_abs_threshold;
 
 -- Reduce the eligible minutes before joining to entry ticks. The previous
 -- shape joined every later tick and discarded almost all rows afterwards.
@@ -100,8 +88,8 @@ JOIN thresholds th ON true
 WHERE abs(m.signed_aggression_qty) >= th.aggression_abs_threshold
   AND abs(m.close_price - m.open_price) <= th.absorption_move_abs_threshold
   AND m.signed_aggression_qty <> 0
-  AND m.minute_ts >= (SELECT evaluation_start::TIMESTAMP FROM config)
-  AND m.minute_ts < (SELECT evaluation_end_exclusive::TIMESTAMP FROM config)
+  AND m.minute_ts >= (SELECT signal_start_exclusive::TIMESTAMP FROM config)
+  AND m.minute_ts < (SELECT signal_end_exclusive::TIMESTAMP FROM config)
 QUALIFY row_number() OVER (PARTITION BY m.session_date ORDER BY m.minute_ts) = 1;
 
 -- Uma posição por estratégia/ativo por sessão nesta primeira implementação.
