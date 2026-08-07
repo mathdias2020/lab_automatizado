@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import csv
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -158,7 +157,7 @@ def run_compose(
 
 
 def stage_chunk_input(asset_root: Path, chunk_root: Path, data_start: datetime, data_end: datetime) -> Path:
-    """Expose only the current and overlapping next month through hard links."""
+    """Expose only the current and overlapping next month through copies."""
     input_root = chunk_root / "input"
     if input_root.exists():
         shutil.rmtree(input_root)
@@ -171,7 +170,7 @@ def stage_chunk_input(asset_root: Path, chunk_root: Path, data_start: datetime, 
             target_month = input_root / f"ano={cursor.year}_mes={cursor.month:02d}"
             target_month.mkdir(parents=True)
             for source_file in source_month.rglob("*.parquet"):
-                os.link(source_file, target_month / source_file.name)
+                shutil.copy2(source_file, target_month / source_file.name)
         cursor = next_month(cursor)
     return input_root
 
