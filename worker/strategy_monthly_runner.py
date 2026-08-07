@@ -124,11 +124,18 @@ def merge_summary(paths: list[Path], destination: Path, config: dict) -> None:
         writer.writerow(summary)
 
 
-def run_compose(service: str, run_root: Path, tmp_root: Path, config_file: Path, thresholds_file: Path | None) -> None:
+def run_compose(
+    service: str,
+    run_root: Path,
+    tmp_root: Path,
+    config_file: Path,
+    thresholds_file: Path | None,
+    data_root: Path,
+) -> None:
     run_root.mkdir(parents=True, exist_ok=True)
     tmp_root.mkdir(parents=True, exist_ok=True)
     env = {
-        "DATA_ROOT": "/srv/labs/datasets/raw/full",
+        "DATA_ROOT": str(data_root),
         "RUN_ROOT": str(run_root),
         "TMP_ROOT": str(tmp_root),
         "CONFIG_FILE": str(config_file),
@@ -168,6 +175,11 @@ def main() -> int:
     global_start = parse_timestamp(config["evaluation_start"])
     global_end = parse_timestamp(config["evaluation_end_exclusive"])
     time_stop_minutes = int(config["execution_spec"]["exit"]["time_stop_minutes"])
+    asset_data_root = Path("/srv/labs/datasets/raw/full") / Path(
+        f"ticker={str(config['asset']).lower()}"
+    )
+    if not asset_data_root.is_dir():
+        raise RuntimeError(f"Dataset particionado do ativo ausente: {asset_data_root}")
 
     for name in ("trades.csv", "monthly_metrics.csv", "run_summary.csv", "thresholds.csv", "chunks_manifest.json"):
         target = run_root / name
@@ -181,7 +193,14 @@ def main() -> int:
     preparation_root.mkdir(parents=True)
     preparation_config = preparation_root / "config.json"
     preparation_config.write_text(json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
-    run_compose("strategy-prepare", preparation_root, preparation_tmp, preparation_config, None)
+    run_compose(
+        "strategy-prepare",
+        preparation_root,
+        preparation_tmp,
+        preparation_config,
+        None,
+        asset_data_root,
+    )
 
     thresholds_source = preparation_root / "thresholds.csv"
     thresholds = read_single_csv(thresholds_source)
@@ -212,7 +231,14 @@ def main() -> int:
         )
         chunk_config_path = chunk_root / "config.json"
         chunk_config_path.write_text(json.dumps(chunk_config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
-        run_compose("strategy-backtest", chunk_root, chunk_tmp, chunk_config_path, thresholds_source)
+        run_compose(
+            "strategy-backtest",
+            chunk_root,
+            chunk_tmp,
+            chunk_config_path,
+            thresholds_source,
+            asset_data_root,
+        )
         trade_files.append(chunk_root / "trades.csv")
         metric_files.append(chunk_root / "monthly_metrics.csv")
         summary_files.append(chunk_root / "run_summary.csv")
