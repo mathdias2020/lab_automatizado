@@ -111,6 +111,7 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
 .hypothesis-list { display: grid; gap: 8px; }
 .hypothesis-card { padding: 22px 20px; border: 1px solid var(--line); background: rgba(17, 26, 43, 0.75); }
 .hypothesis-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.hypothesis-statuses { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .hypothesis-card h3 { margin: 8px 0 0; color: var(--text); font-size: 17px; font-weight: 600; letter-spacing: -0.03em; }
 .hypothesis-summary { max-width: 760px; margin: 14px 0 0; color: var(--text-soft); font-size: 13px; line-height: 1.55; }
 .hypothesis-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; color: var(--text-muted); font-family: monospace; font-size: 10px; }
@@ -216,7 +217,7 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
   .run-row > :nth-child(4), .run-row > :nth-child(5), .run-row-heading > :nth-child(4), .run-row-heading > :nth-child(5) { display: block; }
   .page-footer { display: block; line-height: 1.8; }
   .hypothesis-card-header { display: block; }
-  .hypothesis-card-header > .status { margin-top: 14px; }
+  .hypothesis-card-header > .hypothesis-statuses { margin-top: 14px; justify-content: flex-start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
