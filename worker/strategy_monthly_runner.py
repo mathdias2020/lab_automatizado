@@ -9,7 +9,7 @@ import os
 import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
@@ -208,22 +208,33 @@ def main() -> int:
 
     preparation_root = run_root / "preparation"
     preparation_tmp = preparation_root / "tmp"
-    if preparation_root.exists():
-        shutil.rmtree(preparation_root)
-    preparation_root.mkdir(parents=True)
-    preparation_config = preparation_root / "config.json"
-    preparation_config.write_text(json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
-    run_compose(
-        "strategy-prepare",
-        preparation_root,
-        preparation_tmp,
-        preparation_config,
-        None,
-        asset_data_root,
-    )
-
     thresholds_source = preparation_root / "thresholds.csv"
-    thresholds = read_single_csv(thresholds_source)
+    thresholds: dict[str, str] | None = None
+    if thresholds_source.is_file():
+        try:
+            cached = read_single_csv(thresholds_source)
+            numeric_fields = ("aggression_abs_threshold", "absorption_move_abs_threshold")
+            if cached.get("asset") == config.get("asset") and all(float(cached[field]) >= 0 for field in numeric_fields):
+                thresholds = cached
+                print("Reutilizando thresholds do preparo anterior.")
+        except (OSError, RuntimeError, ValueError, KeyError):
+            thresholds = None
+
+    if thresholds is None:
+        if preparation_root.exists():
+            shutil.rmtree(preparation_root)
+        preparation_root.mkdir(parents=True)
+        preparation_config = preparation_root / "config.json"
+        preparation_config.write_text(json.dumps(config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
+        run_compose(
+            "strategy-prepare",
+            preparation_root,
+            preparation_tmp,
+            preparation_config,
+            None,
+            asset_data_root,
+        )
+        thresholds = read_single_csv(thresholds_source)
     shutil.copy2(thresholds_source, run_root / "thresholds.csv")
 
     chunks_root = run_root / "chunks"
@@ -245,7 +256,7 @@ def main() -> int:
                 "signal_start_exclusive": format_timestamp(chunk_start),
                 "signal_end_exclusive": format_timestamp(chunk_end),
                 "data_start_exclusive": format_timestamp(chunk_start),
-                "data_end_exclusive": format_timestamp(min(global_end, chunk_end + __import__("datetime").timedelta(minutes=time_stop_minutes))),
+                "data_end_exclusive": format_timestamp(min(global_end, chunk_end + timedelta(minutes=time_stop_minutes))),
                 "thresholds_file": "/runner/thresholds.csv",
             }
         )
