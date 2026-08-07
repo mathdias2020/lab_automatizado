@@ -86,33 +86,41 @@ SELECT
 FROM minute_features
 WHERE minute_ts < (SELECT train_end_exclusive::TIMESTAMP FROM config);
 
-CREATE OR REPLACE TEMP TABLE candidate_signals AS
+-- Reduce the eligible minutes before joining to entry ticks. The previous
+-- shape joined every later tick and discarded almost all rows afterwards.
+CREATE OR REPLACE TEMP TABLE signal_candidates AS
 SELECT
   m.asset,
   m.session_date,
   m.minute_ts AS signal_minute,
   m.signed_aggression_qty,
-  CASE WHEN m.signed_aggression_qty > 0 THEN 1 ELSE -1 END AS side,
-  date_trunc('minute', t.event_ts) AS entry_minute,
-  t.price AS entry_price,
-  row_number() OVER (PARTITION BY m.session_date ORDER BY m.minute_ts) AS signal_order
+  CASE WHEN m.signed_aggression_qty > 0 THEN 1 ELSE -1 END AS side
 FROM minute_features m
 JOIN thresholds th ON true
-JOIN raw_ticks t
-  ON t.asset = m.asset
- AND t.event_ts >= m.minute_ts + INTERVAL '1 minute'
- AND t.event_ts < m.minute_ts + INTERVAL '2 minutes'
 WHERE abs(m.signed_aggression_qty) >= th.aggression_abs_threshold
   AND abs(m.close_price - m.open_price) <= th.absorption_move_abs_threshold
   AND m.signed_aggression_qty <> 0
   AND m.minute_ts >= (SELECT evaluation_start::TIMESTAMP FROM config)
   AND m.minute_ts < (SELECT evaluation_end_exclusive::TIMESTAMP FROM config)
-QUALIFY row_number() OVER (PARTITION BY m.session_date ORDER BY t.event_ts, t.trade_number) = 1;
+QUALIFY row_number() OVER (PARTITION BY m.session_date ORDER BY m.minute_ts) = 1;
 
 -- Uma posição por estratégia/ativo por sessão nesta primeira implementação.
 -- O primeiro sinal elegível da sessão é escolhido; não há sobreposição.
 CREATE OR REPLACE TEMP TABLE entries AS
-SELECT * FROM candidate_signals WHERE signal_order = 1;
+SELECT
+  s.asset,
+  s.session_date,
+  s.signal_minute,
+  s.signed_aggression_qty,
+  s.side,
+  date_trunc('minute', t.event_ts) AS entry_minute,
+  t.price AS entry_price
+FROM signal_candidates s
+JOIN raw_ticks t
+  ON t.asset = s.asset
+ AND t.event_ts >= s.signal_minute + INTERVAL '1 minute'
+ AND t.event_ts < s.signal_minute + INTERVAL '2 minutes'
+QUALIFY row_number() OVER (PARTITION BY s.session_date ORDER BY t.event_ts, t.trade_number) = 1;
 
 CREATE OR REPLACE TEMP TABLE path AS
 SELECT
