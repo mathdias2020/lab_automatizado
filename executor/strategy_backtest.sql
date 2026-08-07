@@ -214,7 +214,9 @@ COPY (
     date_trunc('month', session_date) AS month,
     count(*) AS trades,
     sum(gross_pnl_position) AS gross_pnl_position,
-    sum(gross_pnl_per_contract) / nullif(sum(contracts), 0) AS gross_pnl_per_contract,
+    -- Cada linha de trades ja expressa o resultado por contrato. Nao dividir
+    -- novamente por contratos, pois isso reduziria a metrica em 10x/50x.
+    sum(gross_pnl_per_contract) AS gross_pnl_per_contract,
     avg(gross_pnl_per_contract) AS mean_trade_pnl_per_contract,
     median(gross_pnl_per_contract) AS median_trade_pnl_per_contract,
     avg(CASE WHEN gross_pnl_per_contract > 0 THEN 1.0 ELSE 0.0 END) AS win_rate,
