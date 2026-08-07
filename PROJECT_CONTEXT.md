@@ -1,10 +1,10 @@
 # Laboratório de Estratégias IA — Contexto do Projeto
 
-**Status:** Fase 5 — executor determinístico bruto e fila Hermes
-**Data de referência:** 2026-08-06
+**Status:** Fase 6 — ciclo autônomo de desenvolvimento com catálogo de candidatos
+**Data de referência:** 2026-08-07
 **Nome do laboratório:** Laboratório Automatizado  
 **ID técnico:** lab_automatizado  
-**Fonte de verdade:** este arquivo, [DECISIONS.md](DECISIONS.md), [STATUS.md](STATUS.md), [docs/PORTFOLIO_OBJECTIVE_V1.md](docs/PORTFOLIO_OBJECTIVE_V1.md), [docs/HERMES_RESEARCH_SYSTEM_V1.md](docs/HERMES_RESEARCH_SYSTEM_V1.md) e [docs/VALIDATION_PROTOCOL.md](docs/VALIDATION_PROTOCOL.md).
+**Fonte de verdade:** este arquivo, [DECISIONS.md](DECISIONS.md), [STATUS.md](STATUS.md), [docs/PORTFOLIO_OBJECTIVE_V1.md](docs/PORTFOLIO_OBJECTIVE_V1.md), [docs/HERMES_RESEARCH_SYSTEM_V1.md](docs/HERMES_RESEARCH_SYSTEM_V1.md), [docs/AUTONOMOUS_RESEARCH_LOOP_V1.md](docs/AUTONOMOUS_RESEARCH_LOOP_V1.md) e [docs/VALIDATION_PROTOCOL.md](docs/VALIDATION_PROTOCOL.md).
 
 ## Objetivo
 
@@ -24,6 +24,9 @@ Inclui:
 - validação fora da amostra;
 - análise de robustez e comparação por períodos;
 - execução determinística de hipóteses aprovadas em modo bruto;
+- ciclo autônomo de desenvolvimento iniciado pelo painel;
+- grade persistente de até 500 variantes por hipótese e até 5 gerações de busca;
+- catálogo de candidatos por ativo e relatório de slots de portfólio;
 - relatórios e registro de decisões.
 
 Não inclui:
@@ -51,7 +54,7 @@ Não inclui:
 - O resultado final será um portfólio de estratégias independentes.
 - O laboratório pode gerar hipóteses, código e experimentos de forma autônoma dentro de um espaço de busca controlado.
 - A promoção de uma estratégia exige aprovação humana.
-- O Hermes poderá explorar dados de desenvolvimento, propor e criticar hipóteses e iniciar pesquisas permitidas pelo control plane. A aprovação humana no painel enfileira um teste determinístico bruto; a promoção para validação, portfólio ou operação continua exigindo aprovação humana.
+- O Hermes poderá explorar dados de desenvolvimento, propor e criticar hipóteses e iniciar pesquisas permitidas pelo control plane. O botão play pode autorizar a fila autônoma de backtests brutos de development; a promoção para validação, portfólio ou operação continua exigindo aprovação humana.
 - A descoberta prioriza as variáveis disponíveis nos cinco anos de histórico confiável.
 - Os trinta dias úteis com dados mais ricos de microestrutura serão usados como fonte secundária de hipóteses e testes específicos, não como substituto da validação de longo prazo.
 - A série histórica preferida é contínua e ajustada.

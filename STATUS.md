@@ -1,8 +1,8 @@
 # Status do projeto
 
-**Data:** 2026-08-06
-**Fase:** 5 — executor determinístico bruto e fila Hermes
-**Estado:** contrato executável v2 publicado; snapshot integral fechado; aguardando aprovação humana para o primeiro backtest real
+**Data:** 2026-08-07
+**Fase:** 6 — ciclo autônomo de desenvolvimento e catálogo de candidatos
+**Estado:** infraestrutura do ciclo publicada e pausada; pronta para iniciar pelo painel
 **Última decisão:** o objetivo é R$ 1.000 bruto por contrato/mês por ativo; custos e slippage ficam desativados nesta fase.
 
 ## Concluído
@@ -37,12 +37,12 @@
 - [x] Dataset bruto fechado como `root:root`, diretórios `0555` e arquivos `0444`.
 - [x] Nenhuma camada normalizada integral foi criada; a KVM2 preserva espaço para os runs.
 
-## Limite consciente antes do primeiro backtest real
+## Limites conscientes antes do play
 
 - [x] O executor recebe uma hipótese executável congelada e testa entradas/saídas determinísticas em modo bruto.
 - [x] O Hermes tem o snapshot `raw/full` montado em leitura e recebe seus fatos de disponibilidade no contexto.
 - [ ] O profiler DuckDB que transforma microestrutura bruta em tabelas de descoberta ainda precisa ser ativado para o Hermes; o modelo não deve tratar texto ou contagem de arquivos como evidência de padrão.
-- [ ] O laço de busca de até 500 variantes e 5 gerações ainda não está ativo; o orçamento está registrado, mas o primeiro run deliberadamente valida uma especificação congelada antes de multiplicar a carga na KVM2.
+- [x] O laço de busca de até 500 variantes e 5 gerações está persistido e será iniciado somente quando o usuário clicar em play.
 
 ## Validação do container mínimo — 2026-08-05
 
@@ -114,6 +114,11 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Cards de estado, heartbeat, hipóteses vazias e revisão adicionados à UI.
 - [x] Painel publicado em produção com o monitoramento Hermes V1.
 - [x] Aprovação humana não dispara run nem promoção automática.
+- [x] Controle play/pause persistido no Supabase com estado pausado por padrão.
+- [x] Fila persistente de variantes, até 500 por hipótese e até 5 gerações.
+- [x] Avaliador determinístico registra candidatos separados por WDOFUT/WINFUT.
+- [x] Scheduler autônomo instalado e habilitado no boot da VPS.
+- [x] Painel mostra controle, candidatos e slots de portfólio sem promoção automática.
 - [x] Runtime observacional instalado em `/srv/labs/projects/lab_automatizado/hermes`.
 - [x] Bridge privilegiada separada instalada para registrar heartbeat via RPC allowlisted.
 - [x] `hermes-runtime.service` e `hermes-bridge.service` habilitados no boot.
@@ -152,12 +157,11 @@ Relatório resumido: `outputs/container-sample-validation-2026-08-05.md`.
 
 ## Próxima etapa
 
-1. revisar as propostas no painel e registrar notas humanas;
-2. aprovar somente a hipótese que você quiser testar; a aprovação enfileira o backtest bruto;
-3. acompanhar o primeiro `strategy_backtest` e validar seus artefatos;
-4. comparar os resultados no desenvolvimento até 2022;
-5. congelar candidato, executar validação 2023–2024 e tratar meses-probe pré-registrados;
-6. evoluir a revisão adversarial e o portfólio por ativo antes de qualquer holdout ou promoção.
+1. clicar em **Iniciar laboratório** no painel;
+2. acompanhar a fila, o worker e os candidatos de WDO/WIN;
+3. revisar os candidatos brutos com os artefatos e hashes do run;
+4. aprovar humanamente uma etapa de validação fora da amostra;
+5. avaliar correlação e preencher no máximo cinco slots por ativo somente após aprovação.
 
 ## Fora do escopo atual
 

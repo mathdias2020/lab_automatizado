@@ -174,6 +174,19 @@ h1 { max-width: 640px; margin: 12px 0 0; font-size: clamp(32px, 4vw, 56px); font
 
 .page-footer { display: flex; justify-content: space-between; gap: 16px; margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--line-soft); color: var(--text-muted); font-family: monospace; font-size: 9px; }
 
+.lab-control-card { margin: 24px 0; padding: 24px; border: 1px solid var(--line); border-radius: 10px; background: var(--ink-soft); }
+.compact-heading { margin-bottom: 12px; }
+.lab-control-copy, .lab-control-foot, .lab-control-hint { color: var(--text-muted); }
+.lab-control-copy { max-width: 760px; margin: 0 0 18px; line-height: 1.6; }
+.lab-control-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.lab-control-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+.lab-control-stat { padding: 14px; border: 1px solid var(--line-soft); border-radius: 8px; background: var(--ink); }
+.lab-control-stat strong { display: block; margin: 4px 0; font-size: 1.5rem; }
+.lab-control-stat small { color: var(--text-muted); }
+.lab-control-foot { margin: 16px 0 0; font-size: .82rem; line-height: 1.5; }
+
+@media (max-width: 760px) { .lab-control-grid { grid-template-columns: 1fr; } }
+
 .auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; background: radial-gradient(circle at 72% 20%, rgba(114, 228, 239, 0.1), transparent 34%), var(--ink); }
 .auth-card { width: min(100%, 430px); padding: 38px; border: 1px solid var(--line); background: rgba(17, 26, 43, 0.82); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28); }
 .auth-brand { padding: 0; }

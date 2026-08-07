@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from candidate_evaluator import evaluate_strategy_run
+
 
 class GatewayError(RuntimeError):
     pass
@@ -112,6 +114,35 @@ class Gateway:
                 "p_uri": uri,
                 "p_sha256": sha256,
                 "p_metadata": metadata,
+            },
+        )
+
+    def register_candidate(
+        self,
+        run_id: str,
+        candidate_key: str,
+        asset: str,
+        hypothesis_id: str | None,
+        generation: int,
+        variant_index: int,
+        metrics: dict[str, Any],
+        monthly_series: dict[str, float],
+        artifact_uri: str,
+        evaluator_version: str,
+    ) -> None:
+        self.rpc(
+            "lab_automatizado_register_candidate",
+            {
+                "p_source_run_id": run_id,
+                "p_candidate_key": candidate_key,
+                "p_asset": asset,
+                "p_hypothesis_id": hypothesis_id,
+                "p_generation": generation,
+                "p_variant_index": variant_index,
+                "p_metrics": metrics,
+                "p_monthly_series": monthly_series,
+                "p_artifact_uri": artifact_uri,
+                "p_evaluator_version": evaluator_version,
             },
         )
 
@@ -261,6 +292,8 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
         return "failed", f"Runner retornou {completed.returncode}: {stderr[-500:]}"
 
     try:
+        if run_type == "strategy_backtest":
+            evaluate_strategy_run(gateway, settings, run_id, config)
         artifact_count = register_run_artifacts(gateway, settings, run_id, artifact_type)
     except (GatewayError, OSError) as exc:
         return "failed", f"Benchmark terminou, mas o registro de artefatos falhou: {exc}"
