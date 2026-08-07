@@ -49,8 +49,18 @@ GROUP BY asset, session_date, minute_ts;
 COPY (
   SELECT
     (SELECT asset FROM config) AS asset,
-    quantile_cont(abs(signed_aggression_qty), (SELECT execution_spec.feature.aggression_quantile FROM config)) AS aggression_abs_threshold,
-    quantile_cont(abs(close_price - open_price), (SELECT execution_spec.feature.absorption_move_quantile FROM config)) AS absorption_move_abs_threshold,
+    CASE
+      WHEN (SELECT execution_spec.feature.aggression_quantile FROM config) <= 0.90 THEN quantile_cont(abs(signed_aggression_qty), 0.90)
+      WHEN (SELECT execution_spec.feature.aggression_quantile FROM config) <= 0.95 THEN quantile_cont(abs(signed_aggression_qty), 0.95)
+      WHEN (SELECT execution_spec.feature.aggression_quantile FROM config) <= 0.975 THEN quantile_cont(abs(signed_aggression_qty), 0.975)
+      ELSE quantile_cont(abs(signed_aggression_qty), 0.99)
+    END AS aggression_abs_threshold,
+    CASE
+      WHEN (SELECT execution_spec.feature.absorption_move_quantile FROM config) <= 0.25 THEN quantile_cont(abs(close_price - open_price), 0.25)
+      WHEN (SELECT execution_spec.feature.absorption_move_quantile FROM config) <= 0.50 THEN quantile_cont(abs(close_price - open_price), 0.50)
+      WHEN (SELECT execution_spec.feature.absorption_move_quantile FROM config) <= 0.75 THEN quantile_cont(abs(close_price - open_price), 0.75)
+      ELSE quantile_cont(abs(close_price - open_price), 0.90)
+    END AS absorption_move_abs_threshold,
     (SELECT train_start FROM config) AS train_start,
     (SELECT train_end_exclusive FROM config) AS train_end_exclusive
   FROM minute_features
