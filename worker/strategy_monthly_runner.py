@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -156,6 +157,25 @@ def run_compose(
         raise RuntimeError(f"Servico {service} retornou {completed.returncode}.")
 
 
+def stage_chunk_input(asset_root: Path, chunk_root: Path, data_start: datetime, data_end: datetime) -> Path:
+    """Expose only the current and overlapping next month through hard links."""
+    input_root = chunk_root / "input"
+    if input_root.exists():
+        shutil.rmtree(input_root)
+    input_root.mkdir(parents=True)
+
+    cursor = data_start.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    while cursor < data_end:
+        source_month = asset_root / f"ano={cursor.year}" / f"mes={cursor.month:02d}"
+        if source_month.is_dir():
+            target_month = input_root / f"ano={cursor.year}_mes={cursor.month:02d}"
+            target_month.mkdir(parents=True)
+            for source_file in source_month.rglob("*.parquet"):
+                os.link(source_file, target_month / source_file.name)
+        cursor = next_month(cursor)
+    return input_root
+
+
 def main() -> int:
     if len(sys.argv) != 2:
         print("Uso: strategy_monthly_runner.py RUN_ID", file=sys.stderr)
@@ -231,14 +251,33 @@ def main() -> int:
         )
         chunk_config_path = chunk_root / "config.json"
         chunk_config_path.write_text(json.dumps(chunk_config, ensure_ascii=True, sort_keys=True) + "\n", encoding="utf-8")
-        run_compose(
-            "strategy-backtest",
-            chunk_root,
-            chunk_tmp,
-            chunk_config_path,
-            thresholds_source,
-            asset_data_root,
-        )
+        data_start = parse_timestamp(chunk_config["data_start_exclusive"])
+        data_end = parse_timestamp(chunk_config["data_end_exclusive"])
+        staged_input = stage_chunk_input(asset_data_root, chunk_root, data_start, data_end)
+        staged_files = list(staged_input.rglob("*.parquet"))
+        if not staged_files:
+            shutil.rmtree(staged_input, ignore_errors=True)
+            manifest.append(
+                {
+                    "month": label,
+                    "signal_start": format_timestamp(chunk_start),
+                    "signal_end": format_timestamp(chunk_end),
+                    "data_end": chunk_config["data_end_exclusive"],
+                    "status": "no_data",
+                }
+            )
+            continue
+        try:
+            run_compose(
+                "strategy-backtest",
+                chunk_root,
+                chunk_tmp,
+                chunk_config_path,
+                thresholds_source,
+                staged_input,
+            )
+        finally:
+            shutil.rmtree(staged_input, ignore_errors=True)
         trade_files.append(chunk_root / "trades.csv")
         metric_files.append(chunk_root / "monthly_metrics.csv")
         summary_files.append(chunk_root / "run_summary.csv")
@@ -248,6 +287,7 @@ def main() -> int:
                 "signal_start": format_timestamp(chunk_start),
                 "signal_end": format_timestamp(chunk_end),
                 "data_end": chunk_config["data_end_exclusive"],
+                "status": "completed",
             }
         )
         if chunk_tmp.exists():
