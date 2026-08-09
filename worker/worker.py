@@ -84,6 +84,7 @@ class Gateway:
         command_status: str,
         run_status: str,
         message: str,
+        failure_category: str | None = None,
     ) -> None:
         self.rpc(
             "lab_automatizado_finish_command",
@@ -93,6 +94,7 @@ class Gateway:
                 "p_command_status": command_status,
                 "p_run_status": run_status,
                 "p_message": message,
+                "p_failure_category": failure_category,
             },
         )
 
@@ -177,7 +179,7 @@ class Settings:
             worker_version=os.environ.get("WORKER_VERSION", "0.1.0"),
             poll_seconds=float(os.environ.get("POLL_SECONDS", "5")),
             heartbeat_seconds=float(os.environ.get("HEARTBEAT_SECONDS", "15")),
-            run_timeout_seconds=int(os.environ.get("RUN_TIMEOUT_SECONDS", "3600")),
+            run_timeout_seconds=int(os.environ.get("RUN_TIMEOUT_SECONDS", "7200")),
             quality_runner=os.environ.get(
                 "QUALITY_RUNNER", "/usr/local/sbin/lab-automatizado-quality-run"
             ),
@@ -240,8 +242,8 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
     if run_type == "strategy_backtest":
         if config.get("executor_id") != "strategy_backtest_v1":
             return "failed", "Executor de estratégia não permitido."
-        if config.get("phase") != "development":
-            return "failed", "O worker inicial só aceita a fase development."
+        if config.get("phase") not in {"development", "screening"}:
+            return "failed", "O worker aceita somente as fases screening e development."
         if config.get("holdout_accessed") is not False:
             return "failed", "Holdout bloqueado no executor de desenvolvimento."
         if config.get("costs_applied") is not False or config.get("slippage_applied") is not False:
@@ -295,10 +297,25 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
         if run_type == "strategy_backtest":
             evaluate_strategy_run(gateway, settings, run_id, config)
         artifact_count = register_run_artifacts(gateway, settings, run_id, artifact_type)
-    except (GatewayError, OSError) as exc:
+    except (GatewayError, OSError, RuntimeError, ValueError, KeyError, TypeError) as exc:
         return "failed", f"Benchmark terminou, mas o registro de artefatos falhou: {exc}"
 
     return "completed", f"Benchmark concluído; {artifact_count} artefatos registrados."
+
+
+def classify_failure(message: str) -> str:
+    normalized = message.casefold()
+    if "excedeu" in normalized or "timeout" in normalized:
+        return "infra_timeout"
+    if "registro de artefatos" in normalized or "candidate" in normalized:
+        return "infra_artifact"
+    if "runner retornou" in normalized or "iniciar o runner" in normalized:
+        return "infra_runner"
+    if "permiss" in normalized or "preparar a pasta" in normalized:
+        return "infra_permission"
+    if any(token in normalized for token in ("não permitido", "nao permitido", "holdout", "hipótese", "hipotese", "política", "politica", "stop, alvo", "fração", "fracao", "comando não", "comando nao", "tipo de run")):
+        return "validation"
+    return "unknown"
 
 
 def run_loop(settings: Settings, once: bool) -> None:
@@ -323,6 +340,7 @@ def run_loop(settings: Settings, once: bool) -> None:
                 command_status,
                 run_status,
                 message,
+                classify_failure(message) if run_status == "failed" else None,
             )
             if once:
                 return

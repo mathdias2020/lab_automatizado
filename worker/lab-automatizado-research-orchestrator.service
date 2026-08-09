@@ -13,6 +13,7 @@ Environment="ORCHESTRATOR_POLL_SECONDS=30"
 ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/worker/research_orchestrator.py
 Restart=always
 RestartSec=15
+UMask=0002
 NoNewPrivileges=true
 PrivateTmp=true
 PrivateDevices=true

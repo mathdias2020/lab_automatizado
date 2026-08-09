@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 
-EVALUATOR_VERSION = "candidate-evaluator-v1-monthly"
+EVALUATOR_VERSION = "candidate-evaluator-v2-monthly"
 
 
 def _rows(path: Path) -> list[dict[str, str]]:
@@ -56,6 +56,9 @@ def evaluate_strategy_run(gateway: Any, settings: Any, run_id: str, config: dict
     candidate_key = f"{hypothesis_key}:g{generation}:v{variant_index:03d}:{run_id[:8]}"
     metrics: dict[str, Any] = {
         "asset": config.get("asset"),
+        "search_stage": config.get("search_stage", "legacy"),
+        "evaluation_start": config.get("evaluation_start"),
+        "evaluation_end_exclusive": config.get("evaluation_end_exclusive"),
         "trades": int(_number(summary, "trades")),
         "gross_pnl_per_contract_total": _number(summary, "gross_pnl_per_contract_total"),
         "mean_monthly_pnl_per_contract": statistics.fmean(values),

@@ -7,12 +7,13 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     await authenticatedUser(request);
-    const [control, candidates, portfolio] = await Promise.all([
+    const [control, candidates, portfolio, health] = await Promise.all([
       rpc<unknown>("lab_automatizado_get_lab_control", {}),
       rpc<unknown[]>("lab_automatizado_list_candidates", { p_asset: null, p_limit: 100 }),
       rpc<unknown[]>("lab_automatizado_list_portfolio", { p_asset: null }),
+      rpc<unknown>("lab_automatizado_get_lab_health", {}),
     ]);
-    return NextResponse.json({ control, candidates, portfolio });
+    return NextResponse.json({ control, candidates, portfolio, health });
   } catch (error) {
     if (error instanceof AuthFailure) return NextResponse.json({ error: error.message }, { status: error.status });
     const message = error instanceof Error ? error.message : "Falha desconhecida.";

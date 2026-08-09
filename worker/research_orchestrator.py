@@ -73,6 +73,10 @@ def cycle(gateway: Gateway) -> None:
             },
         )
 
+    # A promoção só pode acontecer depois que a triagem de uma hipótese não
+    # possui mais itens ativos. O RPC escolhe os melhores resultados por
+    # métricas determinísticas e mantém a validação fora da amostra bloqueada.
+    gateway.rpc("lab_automatizado_promote_screening_top", {"p_requested_by": WORKER_ID})
     gateway.rpc("lab_automatizado_queue_next_variant", {"p_requested_by": WORKER_ID})
     candidates = gateway.rpc("lab_automatizado_list_candidates", {"p_asset": None, "p_limit": 100}) or []
     write_context(candidates if isinstance(candidates, list) else [])

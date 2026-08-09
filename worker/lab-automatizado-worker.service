@@ -9,9 +9,11 @@ User=labadmin
 WorkingDirectory=/srv/labs/projects/lab_automatizado
 EnvironmentFile=/etc/lab-automatizado/worker.env
 Environment="RUN_TIMEOUT_SECONDS=7200"
+Environment="PYTHONUNBUFFERED=1"
 ExecStart=/usr/bin/python3 /srv/labs/projects/lab_automatizado/worker/worker.py
 Restart=on-failure
 RestartSec=10
+UMask=0002
 NoNewPrivileges=false
 PrivateTmp=true
 ProtectHome=true
