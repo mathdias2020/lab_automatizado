@@ -45,6 +45,12 @@ alter table lab_automatizado.research_queue
 alter table lab_automatizado.research_queue
   drop constraint if exists research_queue_hypothesis_id_generation_variant_index_key;
 
+alter table lab_automatizado.hypothesis_test_runs
+  drop constraint if exists hypothesis_test_runs_phase_check,
+  add constraint hypothesis_test_runs_phase_check check (
+    phase in ('screening', 'development', 'validation', 'probe', 'portfolio')
+  );
+
 create unique index if not exists research_queue_variant_stage_unique
   on lab_automatizado.research_queue (hypothesis_id, generation, variant_index, search_stage);
 
