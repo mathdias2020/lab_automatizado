@@ -23,7 +23,14 @@ artefatos e deixa a promocao de portfolio sob controle humano.
   variante; ele nao calcula evidencia nem promove estrategia para portfolio.
 - A fila alterna WDOFUT e WINFUT sempre que houver trabalho elegivel dos dois
   ativos, evitando que um ativo monopolize a unica vaga da KVM2.
-- O limite efetivo de cada run e 7.200 segundos e vem do systemd e do Supabase.
+- O limite efetivo de cada run e 14.400 segundos e vem da configuracao
+  declarativa do run, do systemd e do Supabase. O WIN historico e maior que o
+  WDO e nao deve ser encerrado pelo limite anterior de duas horas.
+- O executor DuckDB de estrategia usa ate 2 vCPUs e 4 GB de memoria por vez;
+  o worker continua serializado para nao disputar recursos com o outro
+  laboratorio.
+- O worker envia heartbeat durante o processamento, inclusive quando o
+  subprocesso DuckDB esta ocupado, evitando que um run longo pareca travado.
 - Custos e slippage continuam desativados, conforme o protocolo deste projeto.
 - Runs antigos da fila V1 foram preservados como historico e marcados como
   superseded/cancelled_reconfiguration ou infra_timeout; eles nao voltam para

@@ -65,8 +65,8 @@ services:
     command: ["/duckdb", ":memory:", "-batch", "-f", "/runner/strategy_backtest.sql"]
     network_mode: "none"
     read_only: true
-    cpus: 1.5
-    mem_limit: 2g
+    cpus: 2
+    mem_limit: 4g
     pids_limit: 128
     security_opt:
       - no-new-privileges:true
@@ -100,8 +100,8 @@ services:
     command: ["/duckdb", ":memory:", "-batch", "-f", "/runner/strategy_prepare.sql"]
     network_mode: "none"
     read_only: true
-    cpus: 1.5
-    mem_limit: 2g
+    cpus: 2
+    mem_limit: 4g
     pids_limit: 128
     security_opt:
       - no-new-privileges:true

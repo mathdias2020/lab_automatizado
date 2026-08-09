@@ -105,6 +105,15 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Deployment Protection SSO da Vercel desativado; o limite de acesso agora é o Supabase Auth do painel.
 - [x] Fluxo ponta a ponta validado: login → API autenticada → enqueue → worker Docker → `succeeded`.
 
+## Correcao do runtime WIN - 2026-08-09
+
+- [x] Run WIN ativo interrompido de forma auditada e marcado como `cancelled_reconfiguration`.
+- [x] Causa identificada: limite de duas horas, com lote de 2020-05 chegando a aproximadamente 2,6 GB temporarios.
+- [x] Executor DuckDB ajustado para 2 vCPUs e 4 GB, mantendo um run por vez.
+- [x] Timeout declarativo ampliado para 14.400 segundos sem abrir holdout.
+- [x] Heartbeat do worker e do run mantido durante o processamento longo.
+- [ ] Reativar o laboratorio depois da publicacao e validar uma nova variante WIN.
+
 ## Monitoramento Hermes V1 — 2026-08-06
 
 - [x] Registry privado de agentes, hipóteses e eventos aplicado no Supabase.
