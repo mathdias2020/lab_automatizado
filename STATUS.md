@@ -112,7 +112,7 @@ Relatório: `outputs/expanded-sample-validation-2026-08-05.md`.
 - [x] Executor DuckDB ajustado para 2 vCPUs e 4 GB, mantendo um run por vez.
 - [x] Timeout declarativo ampliado para 14.400 segundos sem abrir holdout.
 - [x] Heartbeat do worker e do run mantido durante o processamento longo.
-- [ ] Reativar o laboratorio depois da publicacao e validar uma nova variante WIN.
+- [x] Laboratorio reativado; a variante WIN v006 foi iniciada com o runtime corrigido e segue em execucao.
 
 ## Monitoramento Hermes V1 — 2026-08-06
 

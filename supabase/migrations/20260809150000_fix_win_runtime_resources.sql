@@ -24,6 +24,11 @@ update lab_automatizado.research_queue
 update lab_automatizado.hypothesis_test_runs
    set time_budget_seconds = 14400
  where phase in ('screening', 'development')
+   and run_id in (
+     select id
+       from lab_automatizado.runs
+      where status in ('queued', 'claimed', 'running')
+   )
    and time_budget_seconds < 14400;
 
 create or replace function public.lab_automatizado_heartbeat_run(
