@@ -122,7 +122,7 @@ export default function LabControl({ session }: { session: Session }) {
           {submitting ? "Atualizando…" : control?.enabled ? "Pausar laboratório" : "Iniciar laboratório"}
           <span aria-hidden="true">{control?.enabled ? "Ⅱ" : "▶"}</span>
         </button>
-        <span className="lab-control-hint">{control ? `${control.max_variants_per_hypothesis} variantes · ${control.max_generations} gerações · máximo ${control.max_strategies_per_asset}/ativo` : ""}</span>
+        <span className="lab-control-hint">{control ? `${control.screening_enabled ? `${control.screening_max_variants_per_hypothesis} triagem` : "triagem desligada"} · ${control.max_variants_per_hypothesis} desenvolvimento · ${control.max_generations} gerações · timeout ${Math.round(control.run_timeout_seconds / 60)} min` : ""}</span>
       </div>
       {error ? <p className="auth-error" role="alert">{error}</p> : null}
       <div className="lab-control-grid">
