@@ -28,6 +28,7 @@ O control plane registra comandos, execuções, eventos, artefatos e heartbeats.
 ## RPC server-side
 
 - `lab_automatizado_heartbeat_worker`
+- `lab_automatizado_heartbeat_run`
 - `lab_automatizado_enqueue_run`
 - `lab_automatizado_claim_next_command`
 - `lab_automatizado_finish_command`

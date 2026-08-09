@@ -12,6 +12,7 @@ import hashlib
 import json
 import os
 import subprocess
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -63,6 +64,15 @@ class Gateway:
                 "p_worker_id": worker_id,
                 "p_version": version,
                 "p_capabilities": capabilities,
+            },
+        )
+
+    def heartbeat_run(self, run_id: str, worker_id: str) -> None:
+        self.rpc(
+            "lab_automatizado_heartbeat_run",
+            {
+                "p_run_id": run_id,
+                "p_worker_id": worker_id,
             },
         )
 
@@ -276,18 +286,51 @@ def run_command(gateway: Gateway, settings: Settings, command: dict[str, Any]) -
             return "failed", f"Não foi possível preparar a pasta do run: {exc}"
 
     try:
+        requested_timeout = int(config.get("max_seconds", settings.run_timeout_seconds))
+    except (TypeError, ValueError):
+        return "failed", "Timeout declarativo invalido."
+    if not 300 <= requested_timeout <= 14400:
+        return "failed", "Timeout declarativo fora do intervalo permitido (300-14400s)."
+
+    stop_heartbeat = threading.Event()
+
+    def heartbeat_while_running() -> None:
+        while not stop_heartbeat.wait(settings.heartbeat_seconds):
+            try:
+                gateway.heartbeat(settings.worker_id, settings.worker_version, [
+                    "quality_benchmark",
+                    "absorption_event_study_v1",
+                    "strategy_backtest_v1",
+                    "gross_only",
+                    "development_only",
+                ])
+                gateway.heartbeat_run(run_id, settings.worker_id)
+            except GatewayError:
+                continue
+
+    heartbeat_thread = threading.Thread(
+        target=heartbeat_while_running,
+        name=f"run-heartbeat-{run_id[:8]}",
+        daemon=True,
+    )
+    heartbeat_thread.start()
+    try:
         completed = subprocess.run(
             ["sudo", "-n", runner, run_id]
             + ([str(config["asset"])] if run_type == "research" else []),
             check=False,
             capture_output=True,
             text=True,
-            timeout=settings.run_timeout_seconds,
+            timeout=requested_timeout,
         )
     except subprocess.TimeoutExpired:
-        return "failed", f"Benchmark excedeu {settings.run_timeout_seconds}s."
+        return "failed", f"Benchmark excedeu {requested_timeout}s."
     except OSError as exc:
         return "failed", f"Não foi possível iniciar o runner: {exc}"
+
+    finally:
+        stop_heartbeat.set()
+        heartbeat_thread.join(timeout=5)
 
     if completed.returncode != 0:
         stderr = (completed.stderr or "").strip().replace("\n", " ")

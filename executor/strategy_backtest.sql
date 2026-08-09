@@ -1,5 +1,5 @@
-PRAGMA threads=1;
-PRAGMA memory_limit='1500MB';
+PRAGMA threads=2;
+PRAGMA memory_limit='3500MB';
 PRAGMA preserve_insertion_order=false;
 PRAGMA temp_directory='/tmp';
 -- A varredura do snapshot completo pode precisar de mais de 20 GB de

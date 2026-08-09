@@ -294,3 +294,10 @@ Registro append-only das decisões tomadas nos grills e durante a execução do 
 - **Decisão:** o botão play autoriza Hermes e o scheduler a preparar e executar backtests brutos de desenvolvimento de forma contínua, com fila persistente de até 500 variantes por hipótese e até 5 gerações. O sistema registra candidatos separados para WDOFUT e WINFUT e mantém no máximo cinco slots de portfólio por ativo como objetivo.
 - **Motivo:** transformar o laboratório em um processo contínuo, retomável após reinicialização e observável no painel, sem transformar evidência de desenvolvimento em promoção automática.
 - **Impacto:** validação fora da amostra, correlação/seleção do portfólio e qualquer operação continuam bloqueadas para aprovação humana; o estado inicial do controle é pausado.
+## D-025 - Perfil de execucao para o historico WIN
+
+- **Data:** 2026-08-09
+- **Status:** vigente
+- **Decisao:** o backtest bruto usa ate 14.400 segundos por run, 2 vCPUs e 4 GB de memoria no container DuckDB; o worker envia heartbeat durante a execucao.
+- **Motivo:** o WIN possui aproximadamente 8,21 bilhoes de negocios e a triagem no periodo de desenvolvimento excedeu o limite anterior de 7.200 segundos em lotes grandes, especialmente em 2020-05.
+- **Impacto:** o timeout deixa de classificar processamento valido como falha de infraestrutura; custos, slippage, holdout e criterio de promocao permanecem inalterados.
